@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:paddingHorizontal="10dp"
+    android:paddingVertical="5dp"
+    style="@style/bottomSheet"
+    >
+    <TextView
+        android:id="@+id/time_of_arrival"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="1分"
+        android:textSize="18sp"
+        style="@style/bottomSheet"
+        android:background="@drawable/border_arrival_time"/>
+    <TextView
+        android:id="@+id/route_name"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="3"
+        android:gravity="center_vertical"
+        android:text="99"
+        android:textSize="18sp"
+        style="@style/bottomSheet"
+        android:paddingHorizontal="10dp"/>
+</LinearLayout>

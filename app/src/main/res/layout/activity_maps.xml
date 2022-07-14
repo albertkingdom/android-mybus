@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/map"
+    android:name="com.google.android.gms.maps.SupportMapFragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    map:uiZoomControls="true"
+    tools:context=".MapsActivity" />
+
+    <include
+        android:id="@+id/nearby_station_layout"
+        layout="@layout/nearby_station_bottom_sheet" />
+<!--    <androidx.appcompat.widget.LinearLayoutCompat-->
+<!--        android:id="@+id/bottom_sheet_layout_nearby_station"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:background="@android:color/holo_green_light"-->
+<!--        app:behavior_draggable="true"-->
+<!--        app:behavior_hideable="true"-->
+<!--        android:orientation="vertical"-->
+<!--        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"-->
+<!--        xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--        xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--        app:behavior_peekHeight="200dp"-->
+<!--        android:visibility="visible">-->
+<!--        <View-->
+<!--            android:layout_width="30dp"-->
+<!--            android:layout_height="5dp"-->
+<!--            android:layout_marginTop="5dp"-->
+<!--            android:background="@android:color/darker_gray"-->
+<!--            android:layout_gravity="center_horizontal" />-->
+<!--        <androidx.appcompat.widget.LinearLayoutCompat-->
+
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="28dp"-->
+<!--            android:orientation="horizontal"-->
+<!--            >-->
+
+<!--            <TextView-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:layout_weight="1"-->
+<!--                android:text="附近站牌"-->
+<!--                android:textSize="24sp"/>-->
+
+<!--            <ImageView-->
+<!--                android:layout_gravity="center_vertical"-->
+<!--                android:id="@+id/refresh_nearby_station"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:background="@drawable/ic_baseline_refresh_24" />-->
+<!--        </androidx.appcompat.widget.LinearLayoutCompat>-->
+
+<!--        <androidx.recyclerview.widget.RecyclerView-->
+<!--            android:id="@+id/station_recycler_view"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_marginTop="10dp"-->
+<!--            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />-->
+<!--    </androidx.appcompat.widget.LinearLayoutCompat>-->
+
+
+    <include
+        android:id="@+id/arrival_time_layout" layout="@layout/arrival_time_bottom_sheet" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

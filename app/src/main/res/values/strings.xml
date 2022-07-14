@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">MyBusMap</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <string name="distance">%1$d m</string>
+    <string name="stop_count">%1$d 個站牌</string>
+    <string name="arrival_time_min">%1$d 分</string>
+</resources>

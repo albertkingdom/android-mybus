@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat android:id="@+id/bottom_sheet_layout_arrival_time"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    style="@style/bottomSheet"
+    app:behavior_draggable="true"
+    app:behavior_hideable="true"
+    android:orientation="vertical"
+    app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:behavior_peekHeight="200dp"
+    android:visibility="visible"
+    xmlns:tools="http://schemas.android.com/tools">
+    <View
+        android:layout_width="30dp"
+        android:layout_height="5dp"
+        android:layout_marginTop="5dp"
+        android:background="@android:color/darker_gray"
+        android:layout_gravity="center_horizontal" />
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="28dp"
+        android:orientation="horizontal"
+        >
+
+        <TextView
+            android:id="@+id/arrival_time_title"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            tools:text="到站時間"
+            style="@style/bottomSheet"
+            android:textSize="24sp"
+            />
+        <ImageView
+            android:layout_gravity="center_vertical"
+            android:id="@+id/close_arrival_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ic_baseline_cancel_24" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tap_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/bottomSheet"/>
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager2"
+        android:layout_width="match_parent"
+        android:layout_weight="1"
+        android:layout_height="0dp" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>
