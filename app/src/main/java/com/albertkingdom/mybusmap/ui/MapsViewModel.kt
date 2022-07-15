@@ -4,14 +4,13 @@ import android.util.Base64
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.albertkingdom.mybusmap.BuildConfig
 import com.albertkingdom.mybusmap.model.*
-import com.albertkingdom.mybusmap.network.RetrofitManager
+import com.albertkingdom.mybusmap.repository.MyRepository
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.core.Scheduler
 import io.reactivex.rxjava3.schedulers.Schedulers
 import retrofit2.Call
 import retrofit2.Callback
@@ -20,8 +19,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
+import javax.inject.Inject
 
-class MapsViewModel: ViewModel() {
+@HiltViewModel
+class MapsViewModel @Inject constructor(private val repository: MyRepository): ViewModel() {
 
     val nearByStations = MutableLiveData<List<NearByStation>>()
     val arrivalTimesLiveData = MutableLiveData<Map<String, List<ArrivalTime>>>()
@@ -63,7 +64,8 @@ class MapsViewModel: ViewModel() {
 
         currentLocation?.let {
             val filterString = "nearby(${it.latitude},${it.longitude},300)"
-            val call: Call<List<NearByStopsSource>> = RetrofitManager.retrofitService.getNearByStops(authHeader, timeHeader, filterString)
+
+            val call: Call<List<NearByStopsSource>> = repository.getNearByStops(authHeader, timeHeader, filterString)
 
             call.enqueue(object : Callback<List<NearByStopsSource>> {
                 override fun onResponse(call: Call<List<NearByStopsSource>>, response: Response<List<NearByStopsSource>>) {
@@ -145,7 +147,7 @@ class MapsViewModel: ViewModel() {
 
         val stationIDandArrivalTimes = mutableMapOf<String, List<ArrivalTime>>()
 
-        RetrofitManager.retrofitService.getTokenRx()
+        repository.getTokenRx()
             .subscribeOn(Schedulers.io())
             .flatMap { response ->
                 // request for city name
@@ -154,7 +156,7 @@ class MapsViewModel: ViewModel() {
 
                 }
 
-                RetrofitManager.retrofitService.getCityNameRx(
+                repository.getCityNameRx(
                     lon = currentLocation!!.longitude,
                     lnt = currentLocation!!.latitude,
                     auth = "Bearer $token"
@@ -166,7 +168,7 @@ class MapsViewModel: ViewModel() {
                 Log.d(TAG, "cityname $cityName")
 
                 val requests: List<Observable<List<ArrivalTime>>> = stationIDs.map { id ->
-                    RetrofitManager.retrofitService.getArrivalTime(
+                    repository.getArrivalTimeRx(
                         authHeader,
                         timeHeader,
                         cityName = cityName,
