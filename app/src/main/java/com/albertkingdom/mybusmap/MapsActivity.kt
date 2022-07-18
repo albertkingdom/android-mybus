@@ -68,11 +68,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
         // setup view pager 2
-//        val pager2Adapter = ViewPager2Adapter()
         val pager2FragmentAdapter = ViewPager2FragmentAdapter(this)
-
-//        pager2Adapter.data = listOf("a","b")
-//        mapBinding.viewPager2.adapter = pager2Adapter
         mapBinding.arrivalTimeLayout.viewPager2.adapter = pager2FragmentAdapter
 
         TabLayoutMediator(mapBinding.arrivalTimeLayout.tapLayout, mapBinding.arrivalTimeLayout.viewPager2) { tab, position ->
@@ -109,6 +105,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
         mapViewModel.arrivalTimesLiveData.observe(this) { map ->
             Log.d(TAG, "arrivalTimesLiveData $map")
+            mapBinding.arrivalTimeLayout.progressCircular.visibility = View.GONE
             pager2FragmentAdapter.listOfData = map
             pager2FragmentAdapter.notifyDataSetChanged()
         }

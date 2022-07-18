@@ -28,6 +28,8 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
     val arrivalTimesLiveData = MutableLiveData<Map<String, List<ArrivalTime>>>()
     var currentLocation: LatLng? = null
     var errorMessage = MutableLiveData<String>()
+    var token: String = ""
+
     fun getHeaderHMAC(): Map<String, String> {
 
         val APPID = "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"
@@ -71,7 +73,7 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
                 override fun onResponse(call: Call<List<NearByStopsSource>>, response: Response<List<NearByStopsSource>>) {
 
                     if(response.isSuccessful){
-                        Log.d(TAG, "onResponseisSuccessful: "+response.isSuccessful());
+                        Log.d(TAG, "onResponseisSuccessful: "+response.isSuccessful())
 
                         val stops = response.body()
                         Log.d(TAG, stops.toString())
@@ -83,7 +85,7 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
                     } else {
                         val responseCode = response.code()
                         val msg = response.message()
-                        Log.e(TAG, "onResponse code"+ responseCode + ",msg" + msg);
+                        Log.e(TAG, "onResponse code"+ responseCode + ",msg" + msg)
                         errorMessage.value = msg
                     }
                 }
@@ -224,4 +226,6 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
         getArrivalTimeRx(stationIDs = stationIDs)
         return targetNearbyStation
     }
+
+
 }

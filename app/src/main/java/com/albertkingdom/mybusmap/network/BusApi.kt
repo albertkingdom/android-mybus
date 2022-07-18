@@ -14,10 +14,14 @@ import javax.crypto.spec.SecretKeySpec
 
 interface BusApi {
 
-    @GET("Taipei/307")
-    fun getStopOfRoute(@Header("Authorization") auth: String,
-                       @Header("X-Date") xDate: String
-    ): Call<List<StopOfRoute>>
+    @GET("https://tdx.transportdata.tw/api/basic/v2/Bus/StopOfRoute/City/{cityName}/{routeName}")
+    fun getStopOfRouteRx(@Header("authorization") auth: String,
+//                       @Header("X-Date") xDate: String,
+                       @Path("cityName") cityName: String,
+                       @Path("routeName") routeName: String,
+                       @Query("\$top") top: String = "30",
+                       @Query("\$format") format: String = "JSON"
+    ): Observable<List<Route>>
 
 
     @GET("https://ptx.transportdata.tw/MOTC/v2/Bus/Station/NearBy")
@@ -71,6 +75,25 @@ interface BusApi {
         @Field("client_id") clientID: String = BuildConfig.TDX_CLIENT_ID,
         @Field("client_secret") clientSecret: String = BuildConfig.TDX_CLIENT_SECRET
     ): Observable<AuthToken>
+
+    @GET("https://tdx.transportdata.tw/api/basic/v2/Bus/EstimatedTimeOfArrival/City/{cityName}/{routeName}")
+    fun getArrivalTimeForSpecificRouteNameRx(
+        @Path("cityName") cityName: String,
+        @Path("routeName") routeName: String,
+        @Query("\$filter") filter: String,
+        @Query("\$orderby") orderBy: String = "StopID",
+        @Query("\$format") format: String = "JSON",
+        @Header("authorization") auth: String
+    ): Observable<List<Stop>>
+
+    @GET("https://tdx.transportdata.tw/api/basic/v2/Bus/RealTimeNearStop/City/{cityName}/{routeName}")
+    fun getRealTimeNearStopRx(
+        @Path("cityName") cityName: String,
+        @Path("routeName") routeName: String,
+        @Query("\$filter") filter: String,
+        @Query("\$format") format: String = "JSON",
+        @Header("authorization") auth: String
+    ): Observable<List<RealTimeNearStop>>
 }
 
 fun getHeader(): Map<String, String> {

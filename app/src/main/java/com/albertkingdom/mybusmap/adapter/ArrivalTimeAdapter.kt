@@ -12,6 +12,8 @@ import com.albertkingdom.mybusmap.model.ArrivalTime
 
 class ArrivalTimeAdapter: ListAdapter<ArrivalTime,ArrivalTimeAdapter.ArrivalTimeViewHolder>(
     DIFF_CALLBACK) {
+    var onClickName: ((String) -> Unit)? = null
+
     inner class ArrivalTimeViewHolder(val binding:ItemArrivalTimeBinding): RecyclerView.ViewHolder(binding.root) {
 
     }
@@ -24,7 +26,10 @@ class ArrivalTimeAdapter: ListAdapter<ArrivalTime,ArrivalTimeAdapter.ArrivalTime
     override fun onBindViewHolder(holder: ArrivalTimeViewHolder, position: Int) {
         val currentItem = getItem(position)
         //holder.binding.timeOfArrival.text = holder.binding.timeOfArrival.resources.getString(R.string.arrival_time_min,currentItem.EstimateTime/60)
-        holder.binding.routeName.text = currentItem.RouteName.Zh_tw
+        holder.binding.routeName.apply {
+            text = currentItem.RouteName.Zh_tw
+
+        }
 
         holder.binding.timeOfArrival.text = when (currentItem.StopStatus) {
             0 ->  holder.binding.timeOfArrival.resources.getString(R.string.arrival_time_min,currentItem.EstimateTime/60)
@@ -34,6 +39,11 @@ class ArrivalTimeAdapter: ListAdapter<ArrivalTime,ArrivalTimeAdapter.ArrivalTime
             4 ->  "未營運"
             else -> return
         }
+
+        holder.itemView.setOnClickListener {
+            onClickName?.let { it1 -> it1(currentItem.RouteName.Zh_tw) }
+        }
+
     }
 
     companion object {

@@ -4,14 +4,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:behavior_draggable="true"
-    app:behavior_hideable="true"
+    app:behavior_hideable="false"
     android:orientation="vertical"
     app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/bottomSheet"
     app:behavior_peekHeight="200dp"
-    android:visibility="visible">
+    android:visibility="visible"
+    android:alpha="0.8">
     <View
         android:layout_width="30dp"
         android:layout_height="5dp"
@@ -19,17 +20,17 @@
         android:background="@android:color/darker_gray"
         android:layout_gravity="center_horizontal" />
     <androidx.appcompat.widget.LinearLayoutCompat
-
         android:layout_width="match_parent"
         android:layout_height="28dp"
         android:orientation="horizontal"
+        android:paddingHorizontal="10dp"
         >
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="附近站牌"
+            android:text="@string/nearby_by_stop_title"
             android:textSize="24sp"
             style="@style/bottomSheet"/>
 
