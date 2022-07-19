@@ -3,44 +3,30 @@ package com.albertkingdom.mybusmap
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.albertkingdom.mybusmap.adapter.NearByStationAdapter
-import com.albertkingdom.mybusmap.adapter.ViewPager2FragmentAdapter
 import com.albertkingdom.mybusmap.databinding.ActivityMapsBinding
 import com.albertkingdom.mybusmap.model.NearByStation
-import com.albertkingdom.mybusmap.model.StationDetail
 import com.albertkingdom.mybusmap.ui.MapsViewModel
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.tabs.TabLayout
-import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener,
-    GoogleMap.OnMyLocationButtonClickListener {
+class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener {
     private lateinit var mapViewModel: MapsViewModel
-    private lateinit var mMap: GoogleMap
     private lateinit var mapBinding: ActivityMapsBinding
-    private lateinit var adapter: NearByStationAdapter
-    private var locationPermissionGranted = false
-    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient // The entry point to the Fused Location Provider.
-    private var lastKnownLocation: Location? = null
-    private val defaultLocation = LatLng(-33.8523341, 151.2106085)
+    private lateinit var nearByStationAdapter: NearByStationAdapter
     lateinit var nearByStationBottomSheetBehavior: BottomSheetBehavior<View>
     lateinit var arrivalTimeBottomSheetBehavior: BottomSheetBehavior<View>
     val highLightMarkersMap = mutableMapOf<Int, Marker>()
@@ -48,59 +34,35 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
         mapBinding = ActivityMapsBinding.inflate(layoutInflater)
-        //sheetBinding = ModalBottomSheetContentBinding.inflate(layoutInflater)
+
         setContentView(mapBinding.root)
 
         mapViewModel = ViewModelProvider(this).get(MapsViewModel::class.java)
 
-        adapter = NearByStationAdapter()
+        nearByStationAdapter = NearByStationAdapter()
 
-        mapBinding.nearbyStationLayout.stationRecyclerView.adapter = adapter
+        mapBinding.nearbyStationLayout.stationRecyclerView.adapter = nearByStationAdapter
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        // Construct a FusedLocationProviderClient.
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-
-        // setup view pager 2
-        val pager2FragmentAdapter = ViewPager2FragmentAdapter(this)
-        mapBinding.arrivalTimeLayout.viewPager2.adapter = pager2FragmentAdapter
-
-        TabLayoutMediator(mapBinding.arrivalTimeLayout.tapLayout, mapBinding.arrivalTimeLayout.viewPager2) { tab, position ->
-            tab.text = "${position + 1}"
-        }.attach()
-
-        mapBinding.arrivalTimeLayout.tapLayout.addOnTabSelectedListener( object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                val position = tab?.position!!
-               Log.d(TAG, "onTabSelected ${position}")
-                highLightMarkersMap.forEach { i, marker ->
-                    if (i==position) {
-                        marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
-                        marker.showInfoWindow()
-                    } else {
-                        marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                    }
-                }
+        setupTabLayoutViewPager(
+            tabLayout = mapBinding.arrivalTimeLayout.tapLayout,
+            viewPager2 = mapBinding.arrivalTimeLayout.viewPager2,
+            tabConfigurationStrategy = { tab, position ->
+                tab.text = "${position + 1}"
             }
-
-            override fun onTabUnselected(tab: TabLayout.Tab?) {
-            }
-
-            override fun onTabReselected(tab: TabLayout.Tab?) {
-            }
-        })
+        )
+        setupOnTabSelect()
         mapViewModel.nearByStations.observe(this) { setOfStations ->
             Log.d(TAG, "nearByStations $setOfStations")
-            addMark(setOfStations)
-            adapter.currentLocation = mapViewModel.currentLocation
-            adapter.onClickStationName = clickStationNameCallBack
-            adapter.submitList(setOfStations)
+            addMarker(setOfStations)
+            nearByStationAdapter.currentLocation = mapViewModel.currentLocation
+            nearByStationAdapter.onClickStationName = clickStationNameCallBack
+            nearByStationAdapter.submitList(setOfStations)
         }
 
         mapViewModel.arrivalTimesLiveData.observe(this) { map ->
@@ -128,6 +90,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         mapViewModel.errorMessage.observe(this) { msg ->
             Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
         }
+
     }
     /**
      * Manipulates the map once available.
@@ -139,12 +102,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
      * installed Google Play services and returned to the app.
      */
     override fun onMapReady(googleMap: GoogleMap) {
-        mMap = googleMap
+        super.onMapReady(googleMap)
 
-        // Add a marker in Sydney and move the camera
-        //val sydney = LatLng(-34.0, 151.0)
-//        mMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
         // Set a listener for marker click.
         mMap.setOnMarkerClickListener(this)
         mMap.setOnMyLocationButtonClickListener(this)
@@ -193,16 +152,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     }
     @SuppressLint("MissingPermission")
     private fun updateLocationUI() {
-        if (mMap == null) {
-            return
-        }
         try {
             if (locationPermissionGranted) {
-                mMap?.isMyLocationEnabled = true
-                mMap?.uiSettings?.isMyLocationButtonEnabled = true
+                mMap.isMyLocationEnabled = true
+                mMap.uiSettings.isMyLocationButtonEnabled = true
             } else {
-                mMap?.isMyLocationEnabled = false
-                mMap?.uiSettings?.isMyLocationButtonEnabled = false
+                mMap.isMyLocationEnabled = false
+                mMap.uiSettings.isMyLocationButtonEnabled = false
                 //lastKnownLocation = null
                 getLocationPermission()
             }
@@ -210,42 +166,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             Log.e("Exception: %s", e.message, e)
         }
     }
-    @SuppressLint("MissingPermission")
-    private fun getDeviceLocation() {
-        /*
-         * Get the best and most recent location of the device, which may be null in rare
-         * cases when a location is not available.
-         */
-        try {
-            if (locationPermissionGranted) {
-                val locationResult = fusedLocationProviderClient.lastLocation
-                locationResult.addOnCompleteListener(this) { task ->
-                    if (task.isSuccessful) {
-                        // Set the map's camera position to the current location of the device.
-                        lastKnownLocation = task.result
-                        if (lastKnownLocation != null) {
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                LatLng(lastKnownLocation!!.latitude,
-                                    lastKnownLocation!!.longitude), DEFAULT_ZOOM.toFloat()))
 
-                            mapViewModel.currentLocation = LatLng(lastKnownLocation!!.latitude,
-                                lastKnownLocation!!.longitude)
-                            // After get device location, getNearByStop
-                            mapViewModel.getNearByStop()
-                        }
-                    } else {
-                        Log.d(TAG, "Current location is null. Using defaults.")
-                        Log.e(TAG, "Exception: %s", task.exception)
-                        mMap.moveCamera(CameraUpdateFactory
-                            .newLatLngZoom(defaultLocation, DEFAULT_ZOOM.toFloat()))
-                        mMap.uiSettings?.isMyLocationButtonEnabled = false
-                    }
-                }
-            }
-        } catch (e: SecurityException) {
-            Log.e("Exception: %s", e.message, e)
-        }
+    override fun getDeviceLocationCallBack() {
+        super.getDeviceLocationCallBack()
+        mapViewModel.currentLocation = LatLng(
+            lastKnownLocation!!.latitude,
+            lastKnownLocation!!.longitude
+        )
+
+        mapViewModel.getNearByStop()
     }
+
 
 
     private val clickStationNameCallBack: (NearByStation) -> Unit = { station: NearByStation ->
@@ -267,7 +198,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 .title(station.stationName)
             val marker = mMap.addMarker(markerOptions)
 
-            highLightMarkersMap[i] = marker
+            if (marker != null) {
+                highLightMarkersMap[i] = marker
+            }
         }
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
@@ -278,7 +211,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
 
 
 
-    fun addMark(source: List<NearByStation>) {
+    fun addMarker(source: List<NearByStation>) {
         clearAllMarker()
         for (station in source) {
             for ( (i, sub) in station.subStation.withIndex()) {
@@ -289,10 +222,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
                 val markerOptions = MarkerOptions().position(location).title(station.stationName)
                 val marker = mMap.addMarker(markerOptions)
 
-                highLightMarkersMap[i] = marker
-                //mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
-
-
+                if (marker != null) {
+                    highLightMarkersMap[i] = marker
+                }
             }
         }
     }
@@ -308,20 +240,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         arrivalTimeBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
 
     }
-    fun closeArrivalTimeSheet() {
-        arrivalTimeBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
-    }
+
     companion object {
-        private val TAG = "MapsActivity"
+        private const val TAG = "MapsActivity"
         private const val DEFAULT_ZOOM = 15
         private const val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
-
-        // Keys for storing activity state.
-        private const val KEY_CAMERA_POSITION = "camera_position"
-        private const val KEY_LOCATION = "location"
-
-        // Used for selecting the current place.
-        private const val M_MAX_ENTRIES = 5
     }
 
     override fun onMarkerClick(marker: Marker): Boolean {
@@ -331,7 +254,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
         Log.d(TAG, "on click marker.position ${marker.title}")
         // show arrival time
 
-        val station = mapViewModel.onClickMarker(marker)
+        val station = mapViewModel.onClickMarkerRequestArrivalTime(marker)
         val coordinates = station!!.subStation.map {
             LatLng(
                 it.stationPosition.PositionLat,
@@ -345,8 +268,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
             val markerOptions = MarkerOptions().position(item)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                 .title(station.stationName)
-            val marker = mMap.addMarker(markerOptions)
-            highLightMarkersMap[i] = marker
+            val newMarker = mMap.addMarker(markerOptions)
+            if (newMarker != null) {
+                highLightMarkersMap[i] = newMarker
+            }
         }
         mapBinding.arrivalTimeLayout.arrivalTimeTitle.text = station.stationName
         nearByStationBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
@@ -359,8 +284,30 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarker
     }
 
     override fun onMyLocationButtonClick(): Boolean {
-        Log.d(TAG, "onMyLocationButtonClick" )
         getDeviceLocation()
         return false
+    }
+
+    fun setupOnTabSelect() {
+        mapBinding.arrivalTimeLayout.tapLayout.addOnTabSelectedListener( object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                val position = tab?.position!!
+                Log.d(TAG, "onTabSelected ${position}")
+                highLightMarkersMap.forEach { i, marker ->
+                    if (i==position) {
+                        marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                        marker.showInfoWindow()
+                    } else {
+                        marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                    }
+                }
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+            }
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+            }
+        })
     }
 }
