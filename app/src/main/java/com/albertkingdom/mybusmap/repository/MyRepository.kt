@@ -8,10 +8,9 @@ import javax.inject.Inject
 
 
 class MyRepository @Inject constructor(private val api: BusApi) {
-    fun getNearByStops(authHeader: String, timeHeader: String, filter: String): Call<List<NearByStopsSource>> {
-        return api.getNearByStops(authHeader, timeHeader, filter)
+    fun getNearByStopsRx(authHeader: String, filter: String): Observable<List<NearByStopsSource>> {
+        return api.getNearByStopsRx(auth = authHeader, coordinate = filter)
     }
-
     fun getArrivalTimeRx(authHeader: String, timeHeader: String, cityName: String, stationID: String): Observable<List<ArrivalTime>> {
         return api.getArrivalTime(auth = authHeader, xDate = timeHeader, cityName = cityName, stationID = stationID)
     }

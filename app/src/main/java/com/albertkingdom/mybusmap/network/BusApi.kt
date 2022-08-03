@@ -32,6 +32,12 @@ interface BusApi {
 
     ): Call<List<NearByStopsSource>>
 
+    @GET("https://tdx.transportdata.tw/api/advanced/v2/Bus/Station/NearBy")
+    fun getNearByStopsRx(@Header("authorization") auth: String,
+                       @Query("\$spatialFilter") coordinate: String,
+                       @Query("\$format") format: String = "JSON"
+
+    ): Observable<List<NearByStopsSource>>
 //    @GET("https://ptx.transportdata.tw/MOTC/v2/Bus/EstimatedTimeOfArrival/City/{cityName}/PassThrough/Station/{stationID}")
 //    fun getArrivalTime(@Header("Authorization") auth: String,
 //                       @Header("X-Date") xDate: String,

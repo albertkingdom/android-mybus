@@ -84,7 +84,7 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
 
         mapBinding.nearbyStationLayout.refreshNearbyStation.setOnClickListener {
             Log.d(TAG, "refresh nearby station")
-            mapViewModel.getNearByStop()
+            mapViewModel.getNearByStopsRx()
         }
 
         mapViewModel.errorMessage.observe(this) { msg ->
@@ -174,7 +174,7 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
             lastKnownLocation!!.longitude
         )
 
-        mapViewModel.getNearByStop()
+        mapViewModel.getNearByStopsRx()
     }
 
 

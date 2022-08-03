@@ -33,73 +33,62 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
     fun getHeaderHMAC(): Map<String, String> {
 
         val APPID = "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"
-//        val APPID = BuildConfig.TDX_CLIENT_ID
         val AppKey =  "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"
-//        val AppKey =  BuildConfig.TDX_CLIENT_SECRET
 
         val xdate: String = getServerTime()
-        val SignDate = "x-date: $xdate"
+        val signDate = "x-date: $xdate"
 
         val mac: Mac = Mac.getInstance("HmacSHA1")
-        val secret_key = SecretKeySpec(AppKey.toByteArray(), "HmacSHA1")
-        mac.init(secret_key)
+        val secretKey = SecretKeySpec(AppKey.toByteArray(), "HmacSHA1")
+        mac.init(secretKey)
 
-        val hash: String = Base64.encodeToString(mac.doFinal(SignDate.toByteArray()), Base64.NO_WRAP)
+        val hash: String = Base64.encodeToString(mac.doFinal(signDate.toByteArray()), Base64.NO_WRAP)
         System.out.println("Signature :$hash")
         val sAuth =
             "hmac username=\"$APPID\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"${hash}\""
-        println(sAuth)
         return mapOf("Authorization" to sAuth, "X-Date" to xdate)
     }
 
     fun getServerTime(): String {
         val calendar: Calendar = Calendar.getInstance()
         val dateFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US)
-        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"))
-        return dateFormat.format(calendar.getTime())
+        dateFormat.timeZone = TimeZone.getTimeZone("GMT")
+        return dateFormat.format(calendar.time)
     }
 
-    fun getNearByStop() {
-        Log.d(TAG, "getNearByStop")
-        val authHeader: String = getHeaderHMAC()["Authorization"]!!
-        val timeHeader: String = getServerTime()
 
+    fun getNearByStopsRx() {
+        Log.d(TAG, "getNearByStopsRx")
         currentLocation?.let {
             val filterString = "nearby(${it.latitude},${it.longitude},300)"
+            repository.getTokenRx()
+                .subscribeOn(Schedulers.io())
+                .flatMap { response ->
+                    // request for city name
+                    val token = response.accessToken
+                    Log.d(TAG, "token $token")
+                    if (currentLocation == null) {
 
-            val call: Call<List<NearByStopsSource>> = repository.getNearByStops(authHeader, timeHeader, filterString)
-
-            call.enqueue(object : Callback<List<NearByStopsSource>> {
-                override fun onResponse(call: Call<List<NearByStopsSource>>, response: Response<List<NearByStopsSource>>) {
-
-                    if(response.isSuccessful){
-                        Log.d(TAG, "onResponseisSuccessful: "+response.isSuccessful())
-
-                        val stops = response.body()
-                        Log.d(TAG, stops.toString())
-
-                        if (stops != null) {
-                            val stations = handleNearByStopsResponse(stops)
-                            nearByStations.value = stations
-                        }
-                    } else {
-                        val responseCode = response.code()
-                        val msg = response.message()
-                        Log.e(TAG, "onResponse code"+ responseCode + ",msg" + msg)
-                        errorMessage.value = msg
                     }
-                }
 
-                override fun onFailure(call: Call<List<NearByStopsSource>>, t: Throwable) {
-                    Log.e(TAG, "onFailure")
-                    Log.e(TAG, t.localizedMessage.toString())
-                    errorMessage.value = t.localizedMessage
-                }
+                    repository.getNearByStopsRx(
+                        authHeader = "Bearer $token",
+                        filter = filterString
+                    )
 
-            })
+                }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ list ->
+                    Log.d("on next", list.toString())
+                    val stations = handleNearByStopsResponse(list)
+                    nearByStations.value = stations
+
+                }, {
+                    Log.e("On error", it.localizedMessage)
+                    errorMessage.value = it.localizedMessage
+                })
         }
     }
-
 
     fun handleNearByStopsResponse(source: List<NearByStopsSource>): List<NearByStation> {
         val setOfStops = mutableListOf<NearByStation>()
@@ -204,7 +193,7 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
         val TAG = "MapsViewModel"
     }
 
-    fun onClickMarker(marker: Marker): NearByStation? {
+    fun onClickMarkerRequestArrivalTime(marker: Marker): NearByStation? {
         /* find the station where its substation position is equal to clicked marker position,
         return clicked marker station id
          */
