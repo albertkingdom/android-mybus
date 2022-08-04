@@ -14,6 +14,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
+import com.google.android.libraries.places.api.Places
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 
@@ -29,6 +30,13 @@ abstract class BaseMapActivity: AppCompatActivity(), OnMapReadyCallback, GoogleM
         super.onCreate(savedInstanceState)
         // Construct a FusedLocationProviderClient.
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+
+        // Initialize the SDK
+        Places.initialize(applicationContext, BuildConfig.MAPS_API_KEY)
+
+        // Create a new PlacesClient instance
+        val placesClient = Places.createClient(this)
+
     }
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
@@ -62,21 +70,22 @@ abstract class BaseMapActivity: AppCompatActivity(), OnMapReadyCallback, GoogleM
                         // Set the map's camera position to the current location of the device.
                         lastKnownLocation = task.result
                         if (lastKnownLocation != null) {
-                            mMap.moveCamera(
-                                CameraUpdateFactory.newLatLngZoom(
-                                    LatLng(lastKnownLocation!!.latitude,
-                                        lastKnownLocation!!.longitude), DEFAULT_ZOOM.toFloat()))
+//                            mMap.moveCamera(
+//                                CameraUpdateFactory.newLatLngZoom(
+//                                    LatLng(lastKnownLocation!!.latitude,
+//                                        lastKnownLocation!!.longitude), DEFAULT_ZOOM.toFloat()))
 
-
+                            moveCamera(lastKnownLocation!!.latitude, lastKnownLocation!!.longitude)
                             // After get device location,
                             getDeviceLocationCallBack()
                         }
                     } else {
                         Log.d(TAG, "Current location is null. Using defaults.")
                         Log.e(TAG, "Exception: %s", task.exception)
-                        mMap.moveCamera(
-                            CameraUpdateFactory
-                                .newLatLngZoom(defaultLocation, DEFAULT_ZOOM.toFloat()))
+//                        mMap.moveCamera(
+//                            CameraUpdateFactory
+//                                .newLatLngZoom(defaultLocation, DEFAULT_ZOOM.toFloat()))
+                        moveCamera(defaultLocation.latitude, defaultLocation.longitude)
                         mMap.uiSettings.isMyLocationButtonEnabled = false
                     }
                 }
@@ -85,7 +94,10 @@ abstract class BaseMapActivity: AppCompatActivity(), OnMapReadyCallback, GoogleM
             Log.e("Exception: %s", e.message, e)
         }
     }
-
+    fun moveCamera(lat: Double, lon: Double) {
+        Log.d(TAG, "moveCamera")
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(lat, lon), DEFAULT_ZOOM.toFloat()))
+    }
     companion object {
         val TAG = "RouteOfStopActivity"
         private const val DEFAULT_ZOOM = 15

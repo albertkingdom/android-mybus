@@ -11,8 +11,8 @@ class MyRepository @Inject constructor(private val api: BusApi) {
     fun getNearByStopsRx(authHeader: String, filter: String): Observable<List<NearByStopsSource>> {
         return api.getNearByStopsRx(auth = authHeader, coordinate = filter)
     }
-    fun getArrivalTimeRx(authHeader: String, timeHeader: String, cityName: String, stationID: String): Observable<List<ArrivalTime>> {
-        return api.getArrivalTime(auth = authHeader, xDate = timeHeader, cityName = cityName, stationID = stationID)
+    fun getArrivalTimeRx(authHeader: String, cityName: String, stationID: String): Observable<List<ArrivalTime>> {
+        return api.getArrivalTime(auth = authHeader, cityName = cityName, stationID = stationID)
     }
 
     fun getStopOfRouteRx(auth: String, cityName: String, routeName: String): Observable<List<Route>> {
