@@ -38,19 +38,9 @@ interface BusApi {
                        @Query("\$format") format: String = "JSON"
 
     ): Observable<List<NearByStopsSource>>
-//    @GET("https://ptx.transportdata.tw/MOTC/v2/Bus/EstimatedTimeOfArrival/City/{cityName}/PassThrough/Station/{stationID}")
-//    fun getArrivalTime(@Header("Authorization") auth: String,
-//                       @Header("X-Date") xDate: String,
-//                       @Path("cityName") cityName:String,
-//                       @Path("stationID") stationID: String,
-//                       @Query("\$top") top: String = "30",
-//                       @Query("\$format") format: String = "JSON"
-//    ): Call<List<ArrivalTime>>
 
-
-    @GET("https://ptx.transportdata.tw/MOTC/v2/Bus/EstimatedTimeOfArrival/City/{cityName}/PassThrough/Station/{stationID}")
-    fun getArrivalTime(@Header("Authorization") auth: String,
-                       @Header("X-Date") xDate: String,
+    @GET("https://tdx.transportdata.tw/api/advanced/v2/Bus/EstimatedTimeOfArrival/City/{cityName}/PassThrough/Station/{stationID}")
+    fun getArrivalTime(@Header("authorization") auth: String,
                        @Path("cityName") cityName:String,
                        @Path("stationID") stationID: String,
                        @Query("\$top") top: String = "30",
@@ -65,14 +55,6 @@ interface BusApi {
         @Header("authorization") auth: String
 
     ): Observable<List<CityName>>
-
-    @FormUrlEncoded
-    @POST("https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token")
-    fun getToken(
-        @Field("grant_type") grantType: String = "client_credentials",
-        @Field("client_id") clientID: String = BuildConfig.TDX_CLIENT_ID,
-        @Field("client_secret") clientSecret: String = BuildConfig.TDX_CLIENT_SECRET
-    ): Call<AuthToken>
 
     @FormUrlEncoded
     @POST("https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token")

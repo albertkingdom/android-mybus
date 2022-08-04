@@ -3,6 +3,7 @@ package com.albertkingdom.mybusmap
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -14,10 +15,13 @@ import com.albertkingdom.mybusmap.adapter.NearByStationAdapter
 import com.albertkingdom.mybusmap.databinding.ActivityMapsBinding
 import com.albertkingdom.mybusmap.model.NearByStation
 import com.albertkingdom.mybusmap.ui.MapsViewModel
-import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.common.api.Status
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,7 +33,10 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
     private lateinit var nearByStationAdapter: NearByStationAdapter
     lateinit var nearByStationBottomSheetBehavior: BottomSheetBehavior<View>
     lateinit var arrivalTimeBottomSheetBehavior: BottomSheetBehavior<View>
+    lateinit var autocompleteFragment: AutocompleteSupportFragment // search bar
     val highLightMarkersMap = mutableMapOf<Int, Marker>()
+    private val markers = mutableListOf<Marker>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +66,7 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
         setupOnTabSelect()
         mapViewModel.nearByStations.observe(this) { setOfStations ->
             Log.d(TAG, "nearByStations $setOfStations")
-            addMarker(setOfStations)
+            addMarker(setOfStations, isHighlight = false)
             nearByStationAdapter.currentLocation = mapViewModel.currentLocation
             nearByStationAdapter.onClickStationName = clickStationNameCallBack
             nearByStationAdapter.submitList(setOfStations)
@@ -76,7 +83,8 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
 
         mapBinding.arrivalTimeLayout.closeArrivalTime.setOnClickListener {
             Log.d(TAG, "cancel arrival time")
-            clearAllMarker()
+            autocompleteFragment.view?.visibility = View.VISIBLE
+            clearHighlightMarker()
             nearByStationBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
             arrivalTimeBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
 
@@ -91,6 +99,7 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
             Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
         }
 
+       setupSearchBar()
     }
     /**
      * Manipulates the map once available.
@@ -107,7 +116,7 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
         // Set a listener for marker click.
         mMap.setOnMarkerClickListener(this)
         mMap.setOnMyLocationButtonClickListener(this)
-
+        mMap.setPadding(0, 200, 0, 0)
         getLocationPermission()
         updateLocationUI()
         getDeviceLocation()
@@ -116,7 +125,7 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
     override fun onResume() {
         super.onResume()
         Log.d(TAG, "onResume")
-        getDeviceLocation()
+        //getDeviceLocation()
     }
     private fun getLocationPermission() {
         /*
@@ -156,6 +165,7 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
             if (locationPermissionGranted) {
                 mMap.isMyLocationEnabled = true
                 mMap.uiSettings.isMyLocationButtonEnabled = true
+
             } else {
                 mMap.isMyLocationEnabled = false
                 mMap.uiSettings.isMyLocationButtonEnabled = false
@@ -180,7 +190,7 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
 
 
     private val clickStationNameCallBack: (NearByStation) -> Unit = { station: NearByStation ->
-
+        autocompleteFragment.view?.visibility = View.INVISIBLE
         val stationIDs = station.subStation.map { it.stationID }
         mapViewModel.getArrivalTimeRx(stationIDs)
         mapBinding.arrivalTimeLayout.arrivalTimeTitle.text = station.stationName
@@ -191,39 +201,41 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
         val coordinates = station.subStation.map { LatLng(it.stationPosition.PositionLat,it.stationPosition.PositionLon) }
         Log.d(TAG, "on click name coord $coordinates")
         // change marker color
-
-        for ((i, item) in coordinates.withIndex()) {
-            val markerOptions = MarkerOptions().position(item)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                .title(station.stationName)
-            val marker = mMap.addMarker(markerOptions)
-
-            if (marker != null) {
-                highLightMarkersMap[i] = marker
-            }
-        }
-
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-            LatLng(coordinates[0].latitude,
-               coordinates[0].longitude), DEFAULT_ZOOM.toFloat()))
+        addMarker(source = listOf(station), isHighlight = true)
+        moveCamera(coordinates[0].latitude, coordinates[0].longitude)
     }
 
 
 
-
-    fun addMarker(source: List<NearByStation>) {
-        clearAllMarker()
+    private fun addMarker(source: List<NearByStation>, isHighlight: Boolean) {
+        if (!isHighlight) {
+            clearAllMarker()
+        }
+        if (isHighlight) {
+            clearHighlightMarker()
+        }
         for (station in source) {
             for ( (i, sub) in station.subStation.withIndex()) {
                 val location = LatLng(
                     sub.stationPosition.PositionLat,
                     sub.stationPosition.PositionLon
                 )
-                val markerOptions = MarkerOptions().position(location).title(station.stationName)
-                val marker = mMap.addMarker(markerOptions)
-
-                if (marker != null) {
-                    highLightMarkersMap[i] = marker
+                if (!isHighlight) {
+                    val markerOptions =
+                        MarkerOptions().position(location).title(station.stationName)
+                    val marker = mMap.addMarker(markerOptions)
+                    if (marker != null) {
+                        markers.add(marker)
+                    }
+                }
+                if(isHighlight) {
+                    val markerOptions =
+                        MarkerOptions().position(location).title(station.stationName)
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                    val marker = mMap.addMarker(markerOptions)
+                    if (marker != null) {
+                        highLightMarkersMap[i] = marker
+                    }
                 }
             }
         }
@@ -247,8 +259,11 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
         private const val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
     }
 
+    /**
+     * click marker to highlight and show station arrival time
+     */
     override fun onMarkerClick(marker: Marker): Boolean {
-        clearAllMarker()
+        //clearAllMarker()
         //marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
 
         Log.d(TAG, "on click marker.position ${marker.title}")
@@ -263,14 +278,16 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
         }
 
         Log.d(TAG, "on click name coord $coordinates")
-        // change marker color
-        for ((i, item) in coordinates.withIndex()) {
-            val markerOptions = MarkerOptions().position(item)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                .title(station.stationName)
-            val newMarker = mMap.addMarker(markerOptions)
-            if (newMarker != null) {
-                highLightMarkersMap[i] = newMarker
+
+        if (highLightMarkersMap.isEmpty()) {
+            addMarker(source = listOf(station), isHighlight = true)
+        }
+        // change selected marker color
+        for( (i, item) in highLightMarkersMap) {
+            if (item.position == marker.position ) {
+                item.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+            } else {
+                item.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
             }
         }
         mapBinding.arrivalTimeLayout.arrivalTimeTitle.text = station.stationName
@@ -279,10 +296,12 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
         return false
     }
 
-    fun clearAllMarker() {
+    private fun clearAllMarker() {
+        markers.forEach { marker ->  marker.remove() }
+    }
+    private fun clearHighlightMarker() {
         highLightMarkersMap.forEach { _, marker ->  marker.remove()}
     }
-
     override fun onMyLocationButtonClick(): Boolean {
         getDeviceLocation()
         return false
@@ -293,6 +312,7 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 val position = tab?.position!!
                 Log.d(TAG, "onTabSelected ${position}")
+                // select tab and highlight 去/回marker --> modify logic
                 highLightMarkersMap.forEach { i, marker ->
                     if (i==position) {
                         marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
@@ -309,5 +329,34 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
             override fun onTabReselected(tab: TabLayout.Tab?) {
             }
         })
+    }
+
+    private fun setupSearchBar() {
+        // Initialize the AutocompleteSupportFragment.
+        autocompleteFragment = supportFragmentManager.findFragmentById(R.id.autocomplete_fragment) as AutocompleteSupportFragment
+        autocompleteFragment.view?.setBackgroundColor(Color.WHITE)
+        // Specify the types of place data to return.
+        autocompleteFragment.setPlaceFields(listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG))
+        autocompleteFragment.setCountries("TW")
+        autocompleteFragment.setHint("搜尋地點")
+        // Set up a PlaceSelectionListener to handle the response.
+        autocompleteFragment.setOnPlaceSelectedListener(object : PlaceSelectionListener {
+            override fun onPlaceSelected(place: Place) {
+                Log.i(TAG, "Place: ${place.name}, ${place.id}, ${place.latLng}")
+                // move camera
+                place.latLng?.let {
+                    moveCamera(it.latitude, it.longitude)
+                    mapViewModel.currentLocation = it
+                }
+                // search nearby station
+                mapViewModel.getNearByStopsRx()
+                autocompleteFragment.setText(null)
+            }
+
+            override fun onError(status: Status) {
+                Log.i(TAG, "An error occurred: $status")
+            }
+        })
+
     }
 }
