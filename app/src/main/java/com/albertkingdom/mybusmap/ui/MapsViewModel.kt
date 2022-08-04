@@ -132,9 +132,7 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
     }
     /* gettoken -> get cityname -> getArrivalTime */
     fun getArrivalTimeRx(stationIDs: List<String>) {
-
-        val authHeader: String = getHeaderHMAC()["Authorization"]!!
-        val timeHeader: String = getServerTime()
+        arrivalTimesLiveData.value = mapOf()
 
         val stationIDandArrivalTimes = mutableMapOf<String, List<ArrivalTime>>()
 

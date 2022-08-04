@@ -83,7 +83,7 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
 
         mapBinding.arrivalTimeLayout.closeArrivalTime.setOnClickListener {
             Log.d(TAG, "cancel arrival time")
-            autocompleteFragment.view?.visibility = View.VISIBLE
+            mapBinding.searchBar.visibility = View.VISIBLE
             clearHighlightMarker()
             nearByStationBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
             arrivalTimeBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
@@ -190,7 +190,7 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
 
 
     private val clickStationNameCallBack: (NearByStation) -> Unit = { station: NearByStation ->
-        autocompleteFragment.view?.visibility = View.INVISIBLE
+        mapBinding.searchBar.visibility = View.INVISIBLE
         val stationIDs = station.subStation.map { it.stationID }
         mapViewModel.getArrivalTimeRx(stationIDs)
         mapBinding.arrivalTimeLayout.arrivalTimeTitle.text = station.stationName
@@ -263,33 +263,15 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
      * click marker to highlight and show station arrival time
      */
     override fun onMarkerClick(marker: Marker): Boolean {
-        //clearAllMarker()
-        //marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+        clearHighlightMarker()
 
         Log.d(TAG, "on click marker.position ${marker.title}")
         // show arrival time
 
         val station = mapViewModel.onClickMarkerRequestArrivalTime(marker)
-        val coordinates = station!!.subStation.map {
-            LatLng(
-                it.stationPosition.PositionLat,
-                it.stationPosition.PositionLon
-            )
-        }
 
-        Log.d(TAG, "on click name coord $coordinates")
+        addMarker(source = listOf(station!!), isHighlight = true)
 
-        if (highLightMarkersMap.isEmpty()) {
-            addMarker(source = listOf(station), isHighlight = true)
-        }
-        // change selected marker color
-        for( (i, item) in highLightMarkersMap) {
-            if (item.position == marker.position ) {
-                item.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-            } else {
-                item.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
-            }
-        }
         mapBinding.arrivalTimeLayout.arrivalTimeTitle.text = station.stationName
         nearByStationBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
         arrivalTimeBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
@@ -298,9 +280,11 @@ class MapsActivity : BaseMapActivity(),GoogleMap.OnMyLocationButtonClickListener
 
     private fun clearAllMarker() {
         markers.forEach { marker ->  marker.remove() }
+        markers.clear()
     }
     private fun clearHighlightMarker() {
         highLightMarkersMap.forEach { _, marker ->  marker.remove()}
+        highLightMarkersMap.clear()
     }
     override fun onMyLocationButtonClick(): Boolean {
         getDeviceLocation()
