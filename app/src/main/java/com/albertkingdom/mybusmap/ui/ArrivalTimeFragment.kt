@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.albertkingdom.mybusmap.R
 import com.albertkingdom.mybusmap.RouteOfStopActivity
@@ -15,8 +14,10 @@ import com.albertkingdom.mybusmap.adapter.ArrivalTimeAdapter
 import com.albertkingdom.mybusmap.adapter.StopAdapter
 import com.albertkingdom.mybusmap.databinding.ItemViewPager2FragmentBinding
 import com.albertkingdom.mybusmap.model.ArrivalTime
-import com.albertkingdom.mybusmap.model.RouteName
+import com.albertkingdom.mybusmap.model.Favorite
 import com.albertkingdom.mybusmap.model.Stop
+import com.albertkingdom.mybusmap.util.Preference
+
 
 class ArrivalTimeFragment(private val listOfArrivalTime: List<ArrivalTime>?,
                           private val listOfStop: List<Stop>?) : Fragment() {
@@ -24,7 +25,6 @@ class ArrivalTimeFragment(private val listOfArrivalTime: List<ArrivalTime>?,
     lateinit var binding: ItemViewPager2FragmentBinding
     var arrivalTimeAdapter: ArrivalTimeAdapter? = null
     var stopAdapter: StopAdapter? = null
-    //lateinit var viewModel: MapsViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -33,13 +33,13 @@ class ArrivalTimeFragment(private val listOfArrivalTime: List<ArrivalTime>?,
     ): View? {
         val view = inflater.inflate(R.layout.item_view_pager2_fragment, container, false)
         Log.d(TAG, "onCreateView")
+
         return view
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = ItemViewPager2FragmentBinding.inflate(layoutInflater)
-        //viewModel = ViewModelProvider(requireActivity()).get(MapsViewModel::class.java)
-//        recyclerView = binding.arrivalTimeRecyclerview
+
         recyclerView = view.findViewById(R.id.arrival_time_recyclerview)
 
         if (listOfArrivalTime != null) {
@@ -47,7 +47,12 @@ class ArrivalTimeFragment(private val listOfArrivalTime: List<ArrivalTime>?,
 
             arrivalTimeAdapter = ArrivalTimeAdapter()
             arrivalTimeAdapter!!.onClickName = onClickRouteName
+            arrivalTimeAdapter!!.onClickHeart = onClickHeart
             recyclerView.adapter = arrivalTimeAdapter
+
+            val listOfFav = Preference(requireContext()).getFavRoute()
+            val listOfRouteName = listOfFav.map { it.name }
+            arrivalTimeAdapter!!.favRouteName = listOfRouteName
             arrivalTimeAdapter!!.submitList(listOfArrivalTime)
         }
         if (listOfStop != null) {
@@ -66,6 +71,17 @@ class ArrivalTimeFragment(private val listOfArrivalTime: List<ArrivalTime>?,
         intent.putExtra("click route name", routeName)
         startActivity(intent)
     }
+
+    val onClickHeart: (String, Boolean) -> Unit = { routeName, isExisted ->
+        if (!isExisted) {
+            val favorite = Favorite(name = routeName, stationID = "")
+            Preference(requireContext()).saveFavRoute(favorite)
+        } else {
+            Preference(requireContext()).removeFavRoute(routeName)
+        }
+
+    }
+
     companion object {
         val TAG = "ArrivalTimeFragment"
     }

@@ -27,4 +27,11 @@
         android:textSize="18sp"
         style="@style/bottomSheet"
         android:paddingHorizontal="10dp"/>
+    <ImageView
+        android:id="@+id/fav_icon"
+        android:clickable="true"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="0.3"
+        android:src="@drawable/ic_baseline_favorite_border_24" />
 </LinearLayout>

@@ -13,7 +13,8 @@ import com.albertkingdom.mybusmap.model.ArrivalTime
 class ArrivalTimeAdapter: ListAdapter<ArrivalTime,ArrivalTimeAdapter.ArrivalTimeViewHolder>(
     DIFF_CALLBACK) {
     var onClickName: ((String) -> Unit)? = null
-
+    var onClickHeart: ((String, Boolean) -> Unit)? = null
+    var favRouteName: List<String>? = null
     inner class ArrivalTimeViewHolder(val binding:ItemArrivalTimeBinding): RecyclerView.ViewHolder(binding.root) {
 
     }
@@ -28,7 +29,6 @@ class ArrivalTimeAdapter: ListAdapter<ArrivalTime,ArrivalTimeAdapter.ArrivalTime
         //holder.binding.timeOfArrival.text = holder.binding.timeOfArrival.resources.getString(R.string.arrival_time_min,currentItem.EstimateTime/60)
         holder.binding.routeName.apply {
             text = currentItem.RouteName.Zh_tw
-
         }
 
         holder.binding.timeOfArrival.text = when (currentItem.StopStatus) {
@@ -39,11 +39,33 @@ class ArrivalTimeAdapter: ListAdapter<ArrivalTime,ArrivalTimeAdapter.ArrivalTime
             4 ->  "未營運"
             else -> return
         }
+        when (favRouteName?.contains(holder.binding.routeName.text)) {
+            true -> {
+                // is in saved list
+                holder.binding.favIcon.apply {
+                    setImageResource(R.drawable.ic_baseline_favorite)
+                    setOnClickListener {
+                        onClickHeart?.let { it -> it(currentItem.RouteName.Zh_tw, true) }
+                        setImageResource(R.drawable.ic_baseline_favorite_border_24)
+                    }
+                }
+
+            }
+            false -> {
+                // not in saved list
+                holder.binding.favIcon.apply {
+                    setImageResource(R.drawable.ic_baseline_favorite_border_24)
+                    setOnClickListener {
+                        onClickHeart?.let { it -> it(currentItem.RouteName.Zh_tw, false) }
+                        setImageResource(R.drawable.ic_baseline_favorite)
+                    }
+                }
+            }
+        }
 
         holder.itemView.setOnClickListener {
             onClickName?.let { it1 -> it1(currentItem.RouteName.Zh_tw) }
         }
-
     }
 
     companion object {

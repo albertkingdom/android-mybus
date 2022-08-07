@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+
+            <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:map="http://schemas.android.com/apk/res-auto"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:id="@+id/map"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                map:uiZoomControls="true"
+                tools:context=".MapsActivity" />
+            <androidx.cardview.widget.CardView
+                android:id="@+id/search_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginHorizontal="20dp"
+                android:outlineAmbientShadowColor="@color/black">
+                <fragment android:id="@+id/autocomplete_fragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+                    />
+            </androidx.cardview.widget.CardView>
+
+
+
+
+        <include
+            android:id="@+id/nearby_station_layout"
+            layout="@layout/nearby_station_bottom_sheet" />
+
+
+        <include
+            android:id="@+id/arrival_time_layout" layout="@layout/arrival_time_bottom_sheet" />
+
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.appcompat.widget.LinearLayoutCompat>
