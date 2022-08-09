@@ -9,7 +9,7 @@ import com.albertkingdom.mybusmap.model.Stop
 import com.albertkingdom.mybusmap.ui.ArrivalTimeFragment
 
 /* bottom sheet tab 切換分頁 adapter */
-class ViewPager2FragmentAdapter(fragment: Fragment): FragmentStateAdapter(fragment) {
+class ViewPager2FragmentAdapterForActivity(fa: FragmentActivity): FragmentStateAdapter(fa) {
     var listOfData =  mapOf<String, List<ArrivalTime>>()
     var listOfRouteData = listOf<Route>()
     var listOfStopData = listOf<Stop>()
