@@ -1,15 +1,13 @@
 package com.albertkingdom.mybusmap.ui
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.ListAdapter
 import android.widget.ListView
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.albertkingdom.mybusmap.R
@@ -64,11 +62,22 @@ class FavFragment: Fragment(R.layout.fav_fragment) {
     }
 
     private val onDeleteFav = { routeName: String ->
-        val listOfStation = Preference(requireContext()).removeFavRoute(routeName)
-        listOfFavorite.clear()
-        listOfFavorite.addAll(listOfStation)
-        adapter.notifyDataSetChanged()
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("確認刪除")
+            .setMessage("確認刪除 $routeName 路線?")
+            .setPositiveButton("確認") { _, _ ->
+                val listOfStation = Preference(requireContext()).removeFavRoute(routeName)
+                listOfFavorite.clear()
+                listOfFavorite.addAll(listOfStation)
+                adapter.notifyDataSetChanged()
+            }
+            .setNegativeButton("取消") { _, _ ->
+            }
+            .create()
+            .show()
     }
+
     companion object {
         const val TAG = "FavFragment"
     }
