@@ -2,19 +2,20 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="50dp"
+    android:layout_height="wrap_content"
     android:paddingHorizontal="10dp"
     android:paddingVertical="5dp"
-    style="@style/bottomSheet"
-    >
+    style="@style/bottomSheet">
     <TextView
         android:id="@+id/time_of_arrival"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_weight="1"
         android:gravity="center"
         android:text="1分"
         android:textSize="18sp"
+        android:autoSizeTextType="uniform"
+        android:lines="1"
         style="@style/bottomSheet"
         android:background="@drawable/border_arrival_time"/>
     <TextView
@@ -27,4 +28,11 @@
         android:textSize="18sp"
         style="@style/bottomSheet"
         android:paddingHorizontal="10dp"/>
+    <ImageView
+        android:id="@+id/fav_icon"
+        android:clickable="true"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="0.3"
+        android:src="@drawable/ic_baseline_favorite_border_24" />
 </LinearLayout>

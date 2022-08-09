@@ -132,9 +132,7 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
     }
     /* gettoken -> get cityname -> getArrivalTime */
     fun getArrivalTimeRx(stationIDs: List<String>) {
-
-        val authHeader: String = getHeaderHMAC()["Authorization"]!!
-        val timeHeader: String = getServerTime()
+        arrivalTimesLiveData.value = mapOf()
 
         val stationIDandArrivalTimes = mutableMapOf<String, List<ArrivalTime>>()
 
@@ -142,7 +140,8 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
             .subscribeOn(Schedulers.io())
             .flatMap { response ->
                 // request for city name
-                val token = response.accessToken
+                token = response.accessToken
+
                 if (currentLocation == null) {
 
                 }
@@ -160,8 +159,7 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
 
                 val requests: List<Observable<List<ArrivalTime>>> = stationIDs.map { id ->
                     repository.getArrivalTimeRx(
-                        authHeader,
-                        timeHeader,
+                        authHeader = "Bearer $token",
                         cityName = cityName,
                         stationID = id
                     )

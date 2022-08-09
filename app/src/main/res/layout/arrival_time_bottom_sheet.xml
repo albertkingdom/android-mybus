@@ -20,7 +20,7 @@
         android:layout_gravity="center_horizontal" />
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
-        android:layout_height="28dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:paddingHorizontal="10dp"
         >
@@ -28,7 +28,7 @@
         <TextView
             android:id="@+id/arrival_time_title"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             tools:text="到站時間"
             style="@style/bottomSheet"

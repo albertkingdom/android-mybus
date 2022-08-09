@@ -18,16 +18,20 @@
         android:autoSizeTextType="uniform"
         style="@style/bottomSheet"
         android:background="@drawable/border_arrival_time"/>
+
     <TextView
         android:id="@+id/stop_name"
+        style="@style/bottomSheet"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="3"
+        android:autoSizeTextType="uniform"
         android:gravity="center_vertical"
-        tools:text="民安站"
+        android:paddingHorizontal="10dp"
+        android:lines="1"
         android:textSize="18sp"
-        style="@style/bottomSheet"
-        android:paddingHorizontal="10dp"/>
+        android:autoSizeMaxTextSize="18sp"
+        tools:text="民安站" />
 
 
         <TextView
