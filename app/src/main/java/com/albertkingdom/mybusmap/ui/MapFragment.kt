@@ -49,7 +49,7 @@ class MapFragment: Fragment(), GoogleMap.OnMyLocationButtonClickListener,
     var locationPermissionGranted = true
     var lastKnownLocation: Location? = null
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient // The entry point to the Fused Location Provider.
-    private val defaultLocation = LatLng(-33.8523341, 151.2106085)
+    private val defaultLocation = LatLng(25.0476133, 121.5152175)
     private lateinit var mapViewModel: MapsViewModel
     private lateinit var mapBinding: MapFragmentBinding
     private lateinit var nearByStationAdapter: NearByStationAdapter
@@ -152,7 +152,7 @@ class MapFragment: Fragment(), GoogleMap.OnMyLocationButtonClickListener,
                         // Set the map's camera position to the current location of the device.
                         lastKnownLocation = task.result
                         if (lastKnownLocation != null) {
-
+                            Log.d(TAG,"lastKnownLocation is $lastKnownLocation" )
                             moveCamera(lastKnownLocation!!.latitude, lastKnownLocation!!.longitude)
                             // After get device location,
                             getDeviceLocationCallBack()
