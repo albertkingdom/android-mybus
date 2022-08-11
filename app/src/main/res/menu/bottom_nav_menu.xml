@@ -11,5 +11,9 @@
         android:icon="@drawable/ic_baseline_favorite"
         android:title="Favorite"
         app:showAsAction="always" />
-
+    <item
+        android:id="@+id/user"
+        android:icon="@drawable/ic_baseline_people"
+        android:title="User"
+        app:showAsAction="always" />
 </menu>
