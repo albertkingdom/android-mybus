@@ -21,7 +21,12 @@ class FavRouteAdapter(context: Context, val layout: Int, data: List<Favorite>): 
         routeName.text = item.name
         favIcon.setOnClickListener {
             // remove from sharedpreference
-            deleteFav?.let { it1 -> it1(item.name) }
+            deleteFav?.let { it1 ->
+                if (item.name != null) {
+                    it1(item.name)
+                }
+
+            }
         }
         return view
     }

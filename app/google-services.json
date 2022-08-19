@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "293702682922",
+    "project_id": "bus-map-cb06a",
+    "storage_bucket": "bus-map-cb06a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:293702682922:android:24c3520ee1a83374a67653",
+        "android_client_info": {
+          "package_name": "com.albertkingdom.mybusmap"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "293702682922-hpv506h5qgfbmkle0kae12uevg8lnrdl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDVTLVetj3q1izfFC9eeNNFf1rIfIVoz_o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "293702682922-hpv506h5qgfbmkle0kae12uevg8lnrdl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

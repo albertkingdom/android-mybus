@@ -41,7 +41,7 @@ class Preference(val context: Context) {
         if (stationList == null) {
             return emptyList()
         }
-        return stationList.list
+        return stationList.list!!
     }
 
     fun removeFavRoute(route: String): List<Favorite> {
