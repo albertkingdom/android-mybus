@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.albertkingdom.mybusmap.R
 import com.albertkingdom.mybusmap.RouteOfStopActivity
@@ -27,6 +28,7 @@ import com.google.firebase.ktx.Firebase
 class ArrivalTimeFragment(private val listOfArrivalTime: List<ArrivalTime>?,
                           private val listOfStop: List<Stop>?) : Fragment() {
     lateinit var recyclerView: RecyclerView
+    lateinit var viewModel: ArrivalTimeFragmentViewModel
     lateinit var binding: ItemViewPager2FragmentBinding
     var arrivalTimeAdapter: ArrivalTimeAdapter? = null
     var stopAdapter: StopAdapter? = null
@@ -43,6 +45,11 @@ class ArrivalTimeFragment(private val listOfArrivalTime: List<ArrivalTime>?,
         Log.d(TAG, "onCreateView")
         auth = FirebaseAuth.getInstance()
         checkIfSignIn()
+        viewModel = ViewModelProvider(this).get(ArrivalTimeFragmentViewModel::class.java)
+
+        if (isLogin) {
+            viewModel.getFavoriteRouteFromRemote()
+        }
         return view
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -50,7 +57,7 @@ class ArrivalTimeFragment(private val listOfArrivalTime: List<ArrivalTime>?,
         binding = ItemViewPager2FragmentBinding.inflate(layoutInflater)
 
         recyclerView = view.findViewById(R.id.arrival_time_recyclerview)
-
+        Log.d(TAG, "")
         if (listOfArrivalTime != null) {
             Log.d(TAG, "listOfArrivalTime $listOfArrivalTime")
 
@@ -60,9 +67,23 @@ class ArrivalTimeFragment(private val listOfArrivalTime: List<ArrivalTime>?,
             recyclerView.adapter = arrivalTimeAdapter
 
             val listOfFav = Preference(requireContext()).getFavRoute()
-            val listOfRouteName = listOfFav.map { it.name!! }
-            arrivalTimeAdapter!!.favRouteName = listOfRouteName
-            arrivalTimeAdapter!!.submitList(listOfArrivalTime)
+            
+            if (isLogin) {
+                viewModel.listOfFavorite.observe(viewLifecycleOwner) { list ->
+                    Log.d(TAG, "listOfFavorite $list")
+                    val listOfRouteName = list.map { it.name!! }
+                    arrivalTimeAdapter!!.favRouteName = listOfRouteName
+                    arrivalTimeAdapter!!.submitList(listOfArrivalTime)
+                }
+            } else {
+                val listOfRouteName = listOfFav.map { it.name!! }
+                arrivalTimeAdapter!!.favRouteName = listOfRouteName
+                arrivalTimeAdapter!!.submitList(listOfArrivalTime)
+
+            }
+
+
+
         }
         if (listOfStop != null) {
             Log.d(TAG, "listOfStop $listOfStop")
@@ -76,7 +97,7 @@ class ArrivalTimeFragment(private val listOfArrivalTime: List<ArrivalTime>?,
     val onClickRouteName: (String) -> Unit = { routeName: String ->
         Log.d(TAG, "click route name $routeName")
 
-        val intent = Intent(requireActivity(), RouteOfStopActivity::class.java)
+        val intent = Intent(context,RouteOfStopActivity::class.java)
         intent.putExtra("click route name", routeName)
         startActivity(intent)
     }
