@@ -34,8 +34,7 @@ public class ArrivalTimeFragmentViewModel extends ViewModel {
     FirebaseAuth auth = FirebaseAuth.getInstance();
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     private MutableLiveData<Boolean> isLogin = new MutableLiveData<>(false);
-    private MutableLiveData<List<Favorite>> listOfFavorite;
-    //private LiveData<List<Favorite>> listOfFavorite;
+    private MutableLiveData<List<Favorite>> listOfFavorite = new MutableLiveData<>();
 
     public ArrivalTimeFragmentViewModel() {
         super();
@@ -43,9 +42,6 @@ public class ArrivalTimeFragmentViewModel extends ViewModel {
     }
 
     public LiveData<List<Favorite>> getListOfFavorite() {
-        if (listOfFavorite == null) {
-            listOfFavorite = new MutableLiveData<List<Favorite>>();
-        }
         return listOfFavorite;
     }
 
