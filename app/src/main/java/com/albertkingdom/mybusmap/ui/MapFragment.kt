@@ -249,7 +249,7 @@ class MapFragment: Fragment(), GoogleMap.OnMyLocationButtonClickListener,
         mapViewModel.getArrivalTimeRx(stationIDs)
         mapBinding.arrivalTimeLayout.arrivalTimeTitle.text = station.stationName
 
-        nearByStationBottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+        nearByStationBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
         arrivalTimeBottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
 
         val coordinates = station.subStation.map { LatLng(it.stationPosition.PositionLat,it.stationPosition.PositionLon) }

@@ -12,7 +12,8 @@
     style="@style/bottomSheet"
     app:behavior_peekHeight="200dp"
     android:visibility="visible"
-    android:alpha="0.8">
+    android:layout_marginTop="100dp"
+    android:alpha="1">
     <View
         android:layout_width="30dp"
         android:layout_height="5dp"

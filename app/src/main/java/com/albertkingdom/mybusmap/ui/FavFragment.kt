@@ -2,7 +2,6 @@ package com.albertkingdom.mybusmap.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,7 +14,7 @@ import com.albertkingdom.mybusmap.RouteOfStopActivity
 import com.albertkingdom.mybusmap.adapter.FavRouteAdapter
 import com.albertkingdom.mybusmap.databinding.FavFragmentBinding
 import com.albertkingdom.mybusmap.model.Favorite
-import com.albertkingdom.mybusmap.util.Preference
+
 
 
 class FavFragment: Fragment(R.layout.fav_fragment) {
@@ -30,7 +29,6 @@ class FavFragment: Fragment(R.layout.fav_fragment) {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        Log.d(TAG, "onCreateView")
         viewModel = ViewModelProvider(this).get(FavFragmentViewModel::class.java)
 
         binding = FavFragmentBinding.inflate(inflater, container, false)
@@ -40,12 +38,14 @@ class FavFragment: Fragment(R.layout.fav_fragment) {
             if (isLogin) {
                 viewModel.getFromRemote()
             } else {
-                getFromLocal()
+                viewModel.getFromDB()
             }
         }
         viewModel.listOfFavorite.observe(viewLifecycleOwner) { list ->
             if (list.isNotEmpty()) {
                 binding.emptyListPlaceholder.visibility = View.GONE
+            } else {
+                binding.emptyListPlaceholder.visibility = View.VISIBLE
             }
             adapter = FavRouteAdapter(requireContext(), R.layout.item_fav_list, list)
             listView.adapter = adapter
@@ -64,10 +64,7 @@ class FavFragment: Fragment(R.layout.fav_fragment) {
             startActivity(intent)
         }
     }
-    fun getFromLocal() {
-        val listOfStation = Preference(requireContext()).getFavRoute()
-        viewModel.setListOfFavorite(listOfStation)
-    }
+
     private val onDeleteFav = { routeName: String ->
 
         AlertDialog.Builder(requireContext())
@@ -78,8 +75,7 @@ class FavFragment: Fragment(R.layout.fav_fragment) {
                 if (viewModel.isLogin.value == true) {
                     viewModel.removeFromRemote(routeName)
                 } else {
-                    val listOfStation = Preference(requireContext()).removeFavRoute(routeName)
-                    viewModel.setListOfFavorite(listOfStation)
+                    viewModel.removeFromDB(routeName)
                 }
             }
             .setNegativeButton("取消") { _, _ ->
