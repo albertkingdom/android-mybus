@@ -1,5 +1,7 @@
 package com.albertkingdom.mybusmap.ui
 
+import android.content.Context
+import android.location.Location
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -7,10 +9,13 @@ import com.albertkingdom.mybusmap.model.RealTimeNearStop
 import com.albertkingdom.mybusmap.model.Route
 import com.albertkingdom.mybusmap.model.Stop
 import com.albertkingdom.mybusmap.repository.MyRepository
+import com.albertkingdom.mybusmap.util.LocationUtils
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import javax.inject.Inject
 
@@ -24,6 +29,11 @@ class RouteViewModel @Inject constructor(val repository: MyRepository): ViewMode
     val routeList = MutableLiveData<List<Route>>()
     val stopAndEstimateTime = MutableLiveData<List<Stop>>()
     val realTimeNearStop = MutableLiveData<List<RealTimeNearStop>>()
+    private val disposables = CompositeDisposable()
+
+    private fun addDisposable(disposable: Disposable) {
+        disposables.add(disposable)
+    }
 
     fun getStopOfRoute() {
         repository.getTokenRx()
@@ -35,15 +45,6 @@ class RouteViewModel @Inject constructor(val repository: MyRepository): ViewMode
                     Observable.error<String>(Throwable("currentLocation is null"))
                 }
 
-                repository.getCityNameRx(
-                    lon = currentLocation!!.longitude,
-                    lnt = currentLocation!!.latitude,
-                    auth = "Bearer $token"
-                )
-
-            }.flatMap { list ->
-                // request for StopOfRoute
-                val cityName = list[0].City
                 Log.d(TAG, "cityname $cityName")
 
                 val requests = listOf(
@@ -73,7 +74,7 @@ class RouteViewModel @Inject constructor(val repository: MyRepository): ViewMode
             }, {
                 Log.e("On error", it.message.toString())
                 errorMessage.value = it.message
-            })
+            }).apply { addDisposable(this) }
     }
     fun getArrivalTimeForSpecificRouteNameRx() {
         repository.getArrivalTimeForSpecificRouteNameRx(auth = "Bearer $token", cityName = cityName, routeName = routeName)
@@ -89,7 +90,9 @@ class RouteViewModel @Inject constructor(val repository: MyRepository): ViewMode
                 }
             )
     }
-
+    fun getCityName(location: Location, context: Context) {
+        cityName = LocationUtils.getCityName(location, context).toString()
+    }
     fun getRealTimeNearStopRx() {
         repository.getRealTimeNearStopRx(auth = "Bearer $token", cityName = cityName, routeName = routeName)
             .subscribeOn(Schedulers.io())
@@ -121,6 +124,11 @@ class RouteViewModel @Inject constructor(val repository: MyRepository): ViewMode
             stop
         }
         return modifiedStops
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        disposables.clear()
     }
     companion object {
         val TAG = "RouteViewModel"

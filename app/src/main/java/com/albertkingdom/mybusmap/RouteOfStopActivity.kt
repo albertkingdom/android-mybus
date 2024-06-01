@@ -85,6 +85,7 @@ class RouteOfStopActivity : BaseMapActivity() {
             lastKnownLocation!!.latitude,
             lastKnownLocation!!.longitude
         )
+        routeViewModel.getCityName(lastKnownLocation!!, this)
         routeViewModel.getStopOfRoute()
     }
 

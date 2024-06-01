@@ -1,20 +1,30 @@
 package com.albertkingdom.mybusmap.ui
 
+import android.app.Application
+import android.content.Context
+import android.location.Address
+import android.location.Geocoder
+import android.location.Location
 import android.util.Base64
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.albertkingdom.mybusmap.model.*
 import com.albertkingdom.mybusmap.repository.MyRepository
+import com.albertkingdom.mybusmap.util.LocationUtils
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.schedulers.Schedulers
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.crypto.Mac
@@ -28,8 +38,13 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
     val arrivalTimesLiveData = MutableLiveData<Map<String, List<ArrivalTime>>>()
     var currentLocation: LatLng? = null
     var errorMessage = MutableLiveData<String>()
-    var token: String = ""
+    private var token: String = ""
+    private var cityName: String = ""
+    private val disposables = CompositeDisposable()
 
+    private fun addDisposable(disposable: Disposable) {
+        disposables.add(disposable)
+    }
     fun getHeaderHMAC(): Map<String, String> {
 
         val APPID = "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"
@@ -130,6 +145,9 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
 
         return setOfStops
     }
+    fun getCityName(location: Location, context: Context) {
+        cityName = LocationUtils.getCityName(location, context).toString()
+    }
     /* gettoken -> get cityname -> getArrivalTime */
     fun getArrivalTimeRx(stationIDs: List<String>) {
         arrivalTimesLiveData.value = mapOf()
@@ -142,19 +160,6 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
                 // request for city name
                 token = response.accessToken
 
-                if (currentLocation == null) {
-
-                }
-
-                repository.getCityNameRx(
-                    lon = currentLocation!!.longitude,
-                    lnt = currentLocation!!.latitude,
-                    auth = "Bearer $token"
-                )
-
-            }.flatMap { list ->
-                // request for arrival time
-                val cityName = list[0].City
                 Log.d(TAG, "cityname $cityName")
 
                 val requests: List<Observable<List<ArrivalTime>>> = stationIDs.map { id ->
@@ -179,7 +184,9 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
             }, {
                 Log.e("On error", it.localizedMessage)
                 errorMessage.value = it.localizedMessage
-            })
+            }).apply {
+                addDisposable(this)
+            }
 
 
     }
@@ -213,6 +220,8 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
         getArrivalTimeRx(stationIDs = stationIDs)
         return targetNearbyStation
     }
-
-
+    override fun onCleared() {
+        super.onCleared()
+        disposables.clear()
+    }
 }

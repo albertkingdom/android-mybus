@@ -4,6 +4,8 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
@@ -40,6 +42,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
+import java.io.IOException
+import java.util.Locale
 
 @AndroidEntryPoint
 class MapFragment: Fragment(), GoogleMap.OnMyLocationButtonClickListener,
@@ -153,9 +157,11 @@ class MapFragment: Fragment(), GoogleMap.OnMyLocationButtonClickListener,
                         lastKnownLocation = task.result
                         if (lastKnownLocation != null) {
                             Log.d(TAG,"lastKnownLocation is $lastKnownLocation" )
+
                             moveCamera(lastKnownLocation!!.latitude, lastKnownLocation!!.longitude)
                             // After get device location,
                             getDeviceLocationCallBack()
+                            mapViewModel.getCityName(lastKnownLocation!!, requireContext())
                         }
                     } else {
                         Log.d(BaseMapActivity.TAG, "Current location is null. Using defaults.")
@@ -170,6 +176,7 @@ class MapFragment: Fragment(), GoogleMap.OnMyLocationButtonClickListener,
             Log.e("Exception: %s", e.message, e)
         }
     }
+
     fun moveCamera(lat: Double, lon: Double) {
         Log.d(BaseMapActivity.TAG, "moveCamera")
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(lat, lon), BaseMapActivity.DEFAULT_ZOOM.toFloat()))
