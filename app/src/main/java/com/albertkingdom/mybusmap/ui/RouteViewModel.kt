@@ -10,6 +10,7 @@ import com.albertkingdom.mybusmap.model.Route
 import com.albertkingdom.mybusmap.model.Stop
 import com.albertkingdom.mybusmap.repository.MyRepository
 import com.albertkingdom.mybusmap.util.LocationUtils
+import com.albertkingdom.mybusmap.util.TokenManager
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -20,7 +21,10 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import javax.inject.Inject
 
 @HiltViewModel
-class RouteViewModel @Inject constructor(val repository: MyRepository): ViewModel() {
+class RouteViewModel @Inject constructor(
+    val repository: MyRepository,
+    private val tokenManager: TokenManager
+): ViewModel() {
     var currentLocation: LatLng? = null
     var routeName: String = ""
     var errorMessage = MutableLiveData<String>()
@@ -36,11 +40,10 @@ class RouteViewModel @Inject constructor(val repository: MyRepository): ViewMode
     }
 
     fun getStopOfRoute() {
-        repository.getTokenRx()
+        tokenManager.getToken()
             .subscribeOn(Schedulers.io())
-            .flatMap { response ->
+            .flatMap { token ->
                 // request for city name
-                token = response.accessToken
                 if (currentLocation == null) {
                     Observable.error<String>(Throwable("currentLocation is null"))
                 }
@@ -54,7 +57,7 @@ class RouteViewModel @Inject constructor(val repository: MyRepository): ViewMode
                 )
                 Observable.zip(requests) { result ->
                     result
-                }
+                }.singleOrError()
 
             }.observeOn(AndroidSchedulers.mainThread())
             .subscribe({ response ->

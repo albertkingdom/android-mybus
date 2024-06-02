@@ -3,6 +3,7 @@ package com.albertkingdom.mybusmap.repository
 import com.albertkingdom.mybusmap.model.*
 import com.albertkingdom.mybusmap.network.BusApi
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Single
 import retrofit2.Call
 import javax.inject.Inject
 
@@ -23,7 +24,7 @@ class MyRepository @Inject constructor(private val api: BusApi) {
         return api.getCityNameRx(lon = lon, lnt = lnt, auth = auth)
     }
 
-    fun getTokenRx(): Observable<AuthToken> {
+    fun getTokenRx(): Single<AuthToken> {
         return api.getTokenRx()
     }
 

@@ -5,6 +5,7 @@ import com.albertkingdom.mybusmap.BuildConfig
 import com.albertkingdom.mybusmap.model.*
 import com.google.android.gms.maps.model.LatLng
 import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Single
 import retrofit2.Call
 import retrofit2.http.*
 import java.text.SimpleDateFormat
@@ -62,7 +63,7 @@ interface BusApi {
         @Field("grant_type") grantType: String = "client_credentials",
         @Field("client_id") clientID: String = BuildConfig.TDX_CLIENT_ID,
         @Field("client_secret") clientSecret: String = BuildConfig.TDX_CLIENT_SECRET
-    ): Observable<AuthToken>
+    ): Single<AuthToken>
 
     @GET("https://tdx.transportdata.tw/api/basic/v2/Bus/EstimatedTimeOfArrival/City/{cityName}/{routeName}")
     fun getArrivalTimeForSpecificRouteNameRx(

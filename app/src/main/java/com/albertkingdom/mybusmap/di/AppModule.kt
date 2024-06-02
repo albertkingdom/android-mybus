@@ -3,6 +3,8 @@ package com.albertkingdom.mybusmap.di
 import android.util.Log
 import com.albertkingdom.mybusmap.network.BusApi
 import com.albertkingdom.mybusmap.network.RetrofitManager
+import com.albertkingdom.mybusmap.repository.MyRepository
+import com.albertkingdom.mybusmap.util.TokenManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,5 +39,9 @@ object AppModule {
             .build()
         return retrofit.create(BusApi::class.java)
     }
-
+    @Singleton
+    @Provides
+    fun provideTokenManager(repository: MyRepository): TokenManager {
+        return TokenManager(repository)
+    }
 }

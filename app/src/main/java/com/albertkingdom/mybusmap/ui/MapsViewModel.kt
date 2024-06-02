@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModel
 import com.albertkingdom.mybusmap.model.*
 import com.albertkingdom.mybusmap.repository.MyRepository
 import com.albertkingdom.mybusmap.util.LocationUtils
+import com.albertkingdom.mybusmap.util.TokenManager
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,7 +33,10 @@ import javax.crypto.spec.SecretKeySpec
 import javax.inject.Inject
 
 @HiltViewModel
-class MapsViewModel @Inject constructor(private val repository: MyRepository): ViewModel() {
+class MapsViewModel @Inject constructor(
+    private val repository: MyRepository,
+    private val tokenManager: TokenManager
+): ViewModel() {
 
     val nearByStations = MutableLiveData<List<NearByStation>>()
     val arrivalTimesLiveData = MutableLiveData<Map<String, List<ArrivalTime>>>()
@@ -76,22 +80,17 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
         Log.d(TAG, "getNearByStopsRx")
         currentLocation?.let {
             val filterString = "nearby(${it.latitude},${it.longitude},300)"
-            repository.getTokenRx()
-                .subscribeOn(Schedulers.io())
-                .flatMap { response ->
-                    // request for city name
-                    val token = response.accessToken
+            tokenManager.getToken()
+                .flatMap { token ->
                     Log.d(TAG, "token $token")
-                    if (currentLocation == null) {
-
-                    }
 
                     repository.getNearByStopsRx(
                         authHeader = "Bearer $token",
                         filter = filterString
-                    )
+                    ).firstOrError()
 
                 }
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ list ->
                     Log.d("on next", list.toString())
@@ -154,12 +153,10 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
 
         val stationIDandArrivalTimes = mutableMapOf<String, List<ArrivalTime>>()
 
-        repository.getTokenRx()
+        tokenManager.getToken()
             .subscribeOn(Schedulers.io())
-            .flatMap { response ->
+            .flatMap { token ->
                 // request for city name
-                token = response.accessToken
-
                 Log.d(TAG, "cityname $cityName")
 
                 val requests: List<Observable<List<ArrivalTime>>> = stationIDs.map { id ->
@@ -172,7 +169,7 @@ class MapsViewModel @Inject constructor(private val repository: MyRepository): V
                 // zip multiple retrofit request into one
                 Observable.zip(requests) { result ->
                     result
-                }
+                }.firstOrError()
             }.observeOn(AndroidSchedulers.mainThread())
             .subscribe({ response ->
                 for (i in response.indices) {
