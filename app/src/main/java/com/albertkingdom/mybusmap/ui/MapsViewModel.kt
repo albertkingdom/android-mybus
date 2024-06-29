@@ -145,7 +145,15 @@ class MapsViewModel @Inject constructor(
         return setOfStops
     }
     fun getCityName(location: Location, context: Context) {
-        cityName = LocationUtils.getCityName(location, context).toString()
+        LocationUtils.getCityName(location, context){ cityname ->
+            if (cityname != null) {
+                // 更新 UI 或其他操作
+                println("City: $cityname")
+                cityName=cityname
+            } else {
+                println("City not found")
+            }
+        }
     }
     /* gettoken -> get cityname -> getArrivalTime */
     fun getArrivalTimeRx(stationIDs: List<String>) {

@@ -61,6 +61,7 @@ class ArrivalTimeAdapter: ListAdapter<ArrivalTime,ArrivalTimeAdapter.ArrivalTime
                     }
                 }
             }
+            else -> {}
         }
 
         holder.itemView.setOnClickListener {

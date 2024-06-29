@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.fragment.app.Fragment;
 
 
@@ -84,7 +85,8 @@ public class UserFragment extends Fragment {
             Glide.with(this).load(userImageUri).into(binding.userImage);
         } else {
             binding.signOutButton.setVisibility(View.INVISIBLE);
-            binding.userImage.setImageDrawable(requireContext().getDrawable(R.drawable.ic_baseline_people));
+
+            binding.userImage.setImageDrawable(AppCompatResources.getDrawable(requireContext(), R.drawable.baseline_account_circle_24));
         }
     }
 

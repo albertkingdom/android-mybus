@@ -94,7 +94,15 @@ class RouteViewModel @Inject constructor(
             )
     }
     fun getCityName(location: Location, context: Context) {
-        cityName = LocationUtils.getCityName(location, context).toString()
+        LocationUtils.getCityName(location, context){ cityname ->
+            if (cityname != null) {
+                // 更新 UI 或其他操作
+                println("City: $cityname")
+                cityName=cityname
+            } else {
+                println("City not found")
+            }
+        }
     }
     fun getRealTimeNearStopRx() {
         repository.getRealTimeNearStopRx(auth = "Bearer $token", cityName = cityName, routeName = routeName)
