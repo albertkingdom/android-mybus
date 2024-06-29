@@ -4,16 +4,15 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.Color
-import android.location.Address
-import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.app.ActivityCompat
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -26,7 +25,11 @@ import com.albertkingdom.mybusmap.databinding.MapFragmentBinding
 import com.albertkingdom.mybusmap.model.NearByStation
 import com.google.android.gms.common.api.Status
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -62,7 +65,19 @@ class MapFragment: Fragment(), GoogleMap.OnMyLocationButtonClickListener,
     lateinit var autocompleteFragment: AutocompleteSupportFragment // search bar
     val highLightMarkersMap = mutableMapOf<Int, Marker>()
     private val markers = mutableListOf<Marker>()
-
+    private lateinit var locationRequest: LocationRequest
+    private lateinit var locationCallback: LocationCallback
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true || permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
+            // 權限已授予
+            locationPermissionGranted = true
+            startLocationUpdates()
+        } else {
+            // 權限被拒絕
+        }
+    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -129,6 +144,11 @@ class MapFragment: Fragment(), GoogleMap.OnMyLocationButtonClickListener,
 
         return mapBinding.root
     }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        getLocationPermission()
+    }
     fun setupTabLayoutViewPager(tabLayout: TabLayout, viewPager2: ViewPager2, tabConfigurationStrategy: TabLayoutMediator.TabConfigurationStrategy) {
         pager2FragmentAdapter = ViewPager2FragmentAdapter(this)
         viewPager2.adapter = pager2FragmentAdapter
@@ -142,39 +162,36 @@ class MapFragment: Fragment(), GoogleMap.OnMyLocationButtonClickListener,
         mMap.setOnMarkerClickListener(this)
         mMap.setOnMyLocationButtonClickListener(this)
         mMap.setPadding(0, 200, 0, 0)
-        getLocationPermission()
         updateLocationUI()
-        getDeviceLocation()
     }
-    @SuppressLint("MissingPermission")
-    fun getDeviceLocation() {
-        try {
-            if (locationPermissionGranted) {
-                val locationResult = fusedLocationProviderClient.lastLocation
-                locationResult.addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        // Set the map's camera position to the current location of the device.
-                        lastKnownLocation = task.result
-                        if (lastKnownLocation != null) {
-                            Log.d(TAG,"lastKnownLocation is $lastKnownLocation" )
 
-                            moveCamera(lastKnownLocation!!.latitude, lastKnownLocation!!.longitude)
-                            // After get device location,
-                            getDeviceLocationCallBack()
-                            mapViewModel.getCityName(lastKnownLocation!!, requireContext())
-                        }
-                    } else {
-                        Log.d(BaseMapActivity.TAG, "Current location is null. Using defaults.")
-                        Log.e(BaseMapActivity.TAG, "Exception: %s", task.exception)
+    private fun startLocationUpdates() {
+        locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 15000)
+            .setWaitForAccurateLocation(false)
+            .setMinUpdateIntervalMillis(15000)
+            .setMaxUpdateDelayMillis(60000)
+            .build()
 
-                        moveCamera(defaultLocation.latitude, defaultLocation.longitude)
-                        mMap.uiSettings.isMyLocationButtonEnabled = false
-                    }
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                val latestLocation = locationResult.locations.lastOrNull()
+                latestLocation?.let { location ->
+                    updateMapLocation(location)
+                    mapViewModel.currentLocation = LatLng(
+                        location.latitude,
+                        location.longitude
+                    )
+                    mapViewModel.getNearByStopsRx()
+                    mapViewModel.getCityName(location, requireContext())
                 }
             }
-        } catch (e: SecurityException) {
-            Log.e("Exception: %s", e.message, e)
         }
+
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
+    }
+    private fun updateMapLocation(location: Location) {
+        val userLocation = LatLng(location.latitude, location.longitude)
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, DEFAULT_ZOOM))
     }
 
     fun moveCamera(lat: Double, lon: Double) {
@@ -188,66 +205,35 @@ class MapFragment: Fragment(), GoogleMap.OnMyLocationButtonClickListener,
          * device. The result of the permission request is handled by a callback,
          * onRequestPermissionsResult.
          */
-        if (ContextCompat.checkSelfPermission(
+        if (
+            ContextCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION
-            )
-            == PackageManager.PERMISSION_GRANTED
+            ) == PackageManager.PERMISSION_GRANTED
         ) {
             locationPermissionGranted = true
+            startLocationUpdates()
+        } else if (
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            locationPermissionGranted = true
+            startLocationUpdates()
         } else {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION
+            requestPermissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
             )
         }
     }
-    override fun onRequestPermissionsResult(requestCode: Int,
-                                            permissions: Array<String>,
-                                            grantResults: IntArray) {
-        locationPermissionGranted = false
-        when (requestCode) {
-            PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION -> {
-
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.isNotEmpty() &&
-                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    locationPermissionGranted = true
-                }
-            }
-            else -> super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        }
-        updateLocationUI()
-    }
-
     private fun updateLocationUI() {
-        try {
-            if (locationPermissionGranted) {
-                mMap.isMyLocationEnabled = true
-                mMap.uiSettings.isMyLocationButtonEnabled = true
-
-            } else {
-                mMap.isMyLocationEnabled = false
-                mMap.uiSettings.isMyLocationButtonEnabled = false
-                //lastKnownLocation = null
-                getLocationPermission()
-            }
-        } catch (e: SecurityException) {
-            Log.e("Exception: %s", e.message, e)
-        }
+        mMap.isMyLocationEnabled = true
+        mMap.uiSettings.isMyLocationButtonEnabled = true
     }
-
-    fun getDeviceLocationCallBack() {
-
-        mapViewModel.currentLocation = LatLng(
-            lastKnownLocation!!.latitude,
-            lastKnownLocation!!.longitude
-        )
-
-        mapViewModel.getNearByStopsRx()
-    }
-
 
 
     private val clickStationNameCallBack: (NearByStation) -> Unit = { station: NearByStation ->
@@ -315,9 +301,8 @@ class MapFragment: Fragment(), GoogleMap.OnMyLocationButtonClickListener,
     }
 
     companion object {
-        private const val TAG = "MapsActivity"
-        private const val DEFAULT_ZOOM = 15
-        private const val PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
+        private const val TAG = "MapsFragment"
+        private const val DEFAULT_ZOOM = 15f
     }
 
     /**
@@ -348,7 +333,6 @@ class MapFragment: Fragment(), GoogleMap.OnMyLocationButtonClickListener,
         highLightMarkersMap.clear()
     }
     override fun onMyLocationButtonClick(): Boolean {
-        getDeviceLocation()
         return false
     }
 
@@ -403,5 +387,10 @@ class MapFragment: Fragment(), GoogleMap.OnMyLocationButtonClickListener,
             }
         })
 
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
     }
 }

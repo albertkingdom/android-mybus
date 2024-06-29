@@ -9,7 +9,7 @@
         android:layout_weight="1">
 
 
-            <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+            <fragment
                 xmlns:map="http://schemas.android.com/apk/res-auto"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:id="@+id/map"

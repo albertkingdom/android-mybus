@@ -1,50 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
+    android:orientation="vertical"
     android:padding="10dp">
+
     <androidx.cardview.widget.CardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="60dp"
-        >
+        app:cardCornerRadius="60dp">
+
         <ImageView
             android:id="@+id/user_image"
             android:layout_width="120dp"
             android:layout_height="120dp"
-            android:src="@drawable/ic_baseline_people" />
+            android:src="@drawable/baseline_account_circle_24" />
     </androidx.cardview.widget.CardView>
 
     <TextView
         android:id="@+id/username"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:text="user name"
+        android:layout_marginVertical="10dp"
         android:textSize="18sp"
-        android:layout_marginVertical="10dp"/>
+        tools:text="user name" />
 
-  <com.google.android.gms.common.SignInButton
-      android:id="@+id/google_sign_in_button"
-      android:layout_width="200dp"
-      android:layout_height="wrap_content"/>
-
-    <Button
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/google_sign_in_button"
         android:layout_width="200dp"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="email註冊" />
+        android:text="登入啟用雲端保存數據功能" />
     <Space
         android:layout_width="wrap_content"
-        android:layout_height="200dp"/>
+        android:layout_height="200dp" />
+
     <Button
         android:id="@+id/sign_out_button"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
         android:text="sign out"
-        android:textColor="@color/black"
-        />
+        android:textColor="@color/black" />
 </LinearLayout>
