@@ -5,4 +5,7 @@
     <string name="stop_count">%1$d 個站牌</string>
     <string name="arrival_time_min">%1$d 分</string>
     <string name="nearby_by_stop_title">附近站牌</string>
+    <string name="bottom_nav_tab_name_map">地圖</string>
+    <string name="bottom_nav_tab_name_fav">收藏</string>
+    <string name="bottom_nav_tab_name_user">設定</string>
 </resources>

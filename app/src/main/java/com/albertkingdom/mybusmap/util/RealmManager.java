@@ -14,6 +14,7 @@ public class RealmManager {
 
     public static RealmManager shared = new RealmManager();
     public static String TAG = "RealmManager";
+    private RealmManager() {}
     public void saveToDB(String routeName) {
         FavoriteRealm favorite = new FavoriteRealm(routeName, null);
         backgroundThreadRealm.executeTransactionAsync(new Realm.Transaction() {

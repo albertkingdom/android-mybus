@@ -45,12 +45,18 @@ class FavFragmentViewModel: ViewModel() {
                 val favoriteList = snapshot.toObject<FavoriteList>()
                 if (favoriteList?.list != null) {
                     _listOfFavorite.value = favoriteList.list
+                    syncAllToRealm(favoriteList.list)
                 }
             } else {
                 Timber.d("Current data: null")
             }
         }
-
+    }
+    // 將firebase數據同步到local
+    private fun syncAllToRealm(favoriteList: List<Favorite>) {
+        for (item in favoriteList) {
+            RealmManager.shared.saveToDB(item.name)
+        }
     }
     fun removeFromRemote(routeName: String) {
         val currentUser = auth.currentUser
