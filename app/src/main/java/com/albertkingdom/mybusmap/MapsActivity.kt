@@ -11,19 +11,15 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MapsActivity : BaseMapActivity() {
     private lateinit var mapBinding: ActivityMapsBinding
+    private val favFragment by lazy { FavFragment() }
+    private val mapFragment by lazy { MapFragment() }
+    private val userFragment by lazy { UserFragment() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         mapBinding = ActivityMapsBinding.inflate(layoutInflater)
-
         setContentView(mapBinding.root)
-
-
-
-        val favFragment = FavFragment()
-        val mapFragment = MapFragment()
-        val userFragment = UserFragment()
         setupCurrentFragment(mapFragment)
 
         // select bottom nav view to switch fragment

@@ -12,9 +12,9 @@ public class RealmManager {
     RealmConfiguration config = new RealmConfiguration.Builder().name(realmName).build();
     Realm backgroundThreadRealm = Realm.getInstance(config);
 
-    public static RealmManager shared = new RealmManager();
+//    public static RealmManager shared = new RealmManager();
     public static String TAG = "RealmManager";
-    private RealmManager() {}
+    public RealmManager() {}
     public void saveToDB(String routeName) {
         FavoriteRealm favorite = new FavoriteRealm(routeName, null);
         backgroundThreadRealm.executeTransactionAsync(new Realm.Transaction() {

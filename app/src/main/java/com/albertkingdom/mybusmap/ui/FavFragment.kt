@@ -8,30 +8,28 @@ import android.view.ViewGroup
 import android.widget.ListView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import com.albertkingdom.mybusmap.R
 import com.albertkingdom.mybusmap.RouteOfStopActivity
 import com.albertkingdom.mybusmap.adapter.FavRouteAdapter
 import com.albertkingdom.mybusmap.databinding.FavFragmentBinding
 import com.albertkingdom.mybusmap.model.Favorite
+import dagger.hilt.android.AndroidEntryPoint
 
 
-
+@AndroidEntryPoint
 class FavFragment: Fragment(R.layout.fav_fragment) {
     private lateinit var listView: ListView
     private lateinit var binding: FavFragmentBinding
     lateinit var adapter: FavRouteAdapter
-    private lateinit var viewModel: FavFragmentViewModel
+    private val viewModel: FavFragmentViewModel by viewModels()
 
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        viewModel = ViewModelProvider(this).get(FavFragmentViewModel::class.java)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        binding = FavFragmentBinding.inflate(inflater, container, false)
+        binding = FavFragmentBinding.bind(view)
         listView = binding.listView
 
         viewModel.isLogin.observe(viewLifecycleOwner) { isLogin ->
@@ -53,7 +51,6 @@ class FavFragment: Fragment(R.layout.fav_fragment) {
         }
 
         setupListView()
-        return binding.root
     }
 
     private fun setupListView() {
@@ -66,17 +63,21 @@ class FavFragment: Fragment(R.layout.fav_fragment) {
     }
 
     private val onDeleteFav = { routeName: String ->
+        showDeleteConfirmationDialog(routeName) {
+            when (viewModel.isLogin.value) {
+                true -> viewModel.removeFromRemote(routeName)
+                false -> viewModel.removeFromDB(routeName)
+                else -> {} // Handle nullcase if necessary
+            }
+        }
+    }
 
+    private fun showDeleteConfirmationDialog(routeName: String, onConfirm: () -> Unit ) {
         AlertDialog.Builder(requireContext())
             .setTitle("確認刪除")
             .setMessage("確認刪除 $routeName 路線?")
             .setPositiveButton("確認") { _, _ ->
-
-                if (viewModel.isLogin.value == true) {
-                    viewModel.removeFromRemote(routeName)
-                } else {
-                    viewModel.removeFromDB(routeName)
-                }
+               onConfirm()
             }
             .setNegativeButton("取消") { _, _ ->
             }

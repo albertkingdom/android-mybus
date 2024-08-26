@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.albertkingdom.mybusmap.R
@@ -15,18 +16,17 @@ import com.albertkingdom.mybusmap.adapter.StopAdapter
 import com.albertkingdom.mybusmap.databinding.ItemViewPager2FragmentBinding
 import com.albertkingdom.mybusmap.model.ArrivalTime
 import com.albertkingdom.mybusmap.model.Stop
-import com.google.firebase.auth.FirebaseAuth
+import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
-
+@AndroidEntryPoint
 class ArrivalTimeFragment(private val listOfArrivalTime: List<ArrivalTime>?,
                           private val listOfStop: List<Stop>?) : Fragment() {
     lateinit var recyclerView: RecyclerView
-    lateinit var viewModel: ArrivalTimeFragmentViewModel
+    private val viewModel: ArrivalTimeViewModel by viewModels()
     lateinit var binding: ItemViewPager2FragmentBinding
     var arrivalTimeAdapter: ArrivalTimeAdapter? = null
     var stopAdapter: StopAdapter? = null
-    lateinit var auth: FirebaseAuth
 
 
     override fun onCreateView(
@@ -35,10 +35,6 @@ class ArrivalTimeFragment(private val listOfArrivalTime: List<ArrivalTime>?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.item_view_pager2_fragment, container, false)
-
-        auth = FirebaseAuth.getInstance()
-        //checkIfSignIn()
-        viewModel = ViewModelProvider(this).get(ArrivalTimeFragmentViewModel::class.java)
 
         viewModel.isLogin.observe(viewLifecycleOwner) { isLogin ->
             if (isLogin) {
