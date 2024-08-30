@@ -4,6 +4,8 @@ import com.albertkingdom.mybusmap.data.FavDataSource
 import com.albertkingdom.mybusmap.model.Favorite
 import com.albertkingdom.mybusmap.model.db.FavoriteRealm
 import com.albertkingdom.mybusmap.util.RealmManager
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -47,5 +49,9 @@ class FavoriteRepository @Inject constructor(
     override fun checkIsLogin(): Boolean {
         return firebaseDataSource.checkLogin()
     }
+
+//    override fun getRef(): DocumentReference {
+//        return firebaseDataSource.getRef()
+//    }
 
 }

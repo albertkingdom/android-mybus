@@ -1,6 +1,7 @@
 package com.albertkingdom.mybusmap.di
 
 import android.util.Log
+import com.albertkingdom.mybusmap.BuildConfig
 import com.albertkingdom.mybusmap.network.BusApi
 import com.albertkingdom.mybusmap.network.RetrofitManager
 import com.albertkingdom.mybusmap.repository.MyRepository
@@ -34,7 +35,7 @@ object AppModule {
         val retrofit = Retrofit.Builder()
             .addConverterFactory(GsonConverterFactory.create())
             .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
-            .baseUrl(RetrofitManager.BASE_URL)
+            .baseUrl(BuildConfig.TDX_BASE_URL)
             .client(client)
             .build()
         return retrofit.create(BusApi::class.java)

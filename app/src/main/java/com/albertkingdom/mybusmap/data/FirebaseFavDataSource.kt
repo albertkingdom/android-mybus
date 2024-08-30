@@ -3,6 +3,8 @@ package com.albertkingdom.mybusmap.data
 import com.albertkingdom.mybusmap.model.Favorite
 import com.albertkingdom.mybusmap.model.FavoriteList
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -18,6 +20,13 @@ class FirebaseFavDataSource @Inject constructor(
         val currentUser = auth.currentUser
         return currentUser != null
     }
+
+//    override fun getRef(): DocumentReference {
+//        val currentUser = auth.currentUser ?: throw IllegalArgumentException("User not authenticated")
+//        val email = currentUser.email ?: throw IllegalArgumentException("User email is null")
+//        return fireStore.collection("favoriteRoute").("Doc")
+//    }
+
     override suspend fun getFavRoute(): Result<List<Favorite>> {
         val currentUser = auth.currentUser
         val email = currentUser?.email?: return Result.failure(Exception("User email not found"))

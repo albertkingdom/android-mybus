@@ -1,6 +1,8 @@
 package com.albertkingdom.mybusmap.repository
 
 import com.albertkingdom.mybusmap.model.Favorite
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 
 
 interface FavoriteRepositoryInterface {
@@ -17,4 +19,6 @@ interface FavoriteRepositoryInterface {
     fun deleteFromLocal(routeName: String)
 
     fun checkIsLogin(): Boolean
+
+//    fun getRef(): DocumentReference
 }

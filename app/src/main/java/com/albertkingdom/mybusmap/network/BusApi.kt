@@ -1,17 +1,12 @@
 package com.albertkingdom.mybusmap.network
 
-import android.util.Base64
 import com.albertkingdom.mybusmap.BuildConfig
 import com.albertkingdom.mybusmap.model.*
-import com.google.android.gms.maps.model.LatLng
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.core.Single
 import retrofit2.Call
 import retrofit2.http.*
-import java.text.SimpleDateFormat
-import java.util.*
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
+
 
 interface BusApi {
 
@@ -83,32 +78,4 @@ interface BusApi {
         @Query("\$format") format: String = "JSON",
         @Header("authorization") auth: String
     ): Observable<List<RealTimeNearStop>>
-}
-
-fun getHeader(): Map<String, String> {
-    val APPID = "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"
-    val AppKey =  "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF"
-
-    val xdate: String = getServerTime()
-    val SignDate = "x-date: $xdate"
-
-    val mac: Mac = Mac.getInstance("HmacSHA1")
-    val secret_key = SecretKeySpec(AppKey.toByteArray(), "HmacSHA1")
-    mac.init(secret_key)
-
-    val hash: String = Base64.encodeToString(mac.doFinal(SignDate.toByteArray()), Base64.NO_WRAP)
-    System.out.println("Signature :$hash")
-    val sAuth =
-        "hmac username=\"$APPID\", algorithm=\"hmac-sha1\", headers=\"x-date\", signature=\"${hash}\""
-    println(sAuth)
-    return mapOf("Authorization" to sAuth, "X-Date" to xdate)
-}
-fun getAuthString(): String {
-    return getHeader()["Authorization"]!!
-}
-fun getServerTime(): String {
-    val calendar: Calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US)
-    dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"))
-    return dateFormat.format(calendar.getTime())
 }

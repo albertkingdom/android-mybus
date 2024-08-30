@@ -1,6 +1,7 @@
 package com.albertkingdom.mybusmap.data
 
 import com.albertkingdom.mybusmap.model.Favorite
+import com.google.firebase.firestore.DocumentReference
 
 interface FavDataSource {
     suspend fun getFavRoute(): Result<List<Favorite>>
@@ -10,4 +11,6 @@ interface FavDataSource {
     suspend fun deleteFavRoute(routeName: String)
 
     fun checkLogin(): Boolean
+
+//    fun getRef(): DocumentReference
 }

@@ -10,17 +10,20 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.albertkingdom.mybusmap.R
 import com.albertkingdom.mybusmap.RouteOfStopActivity
 import com.albertkingdom.mybusmap.adapter.FavRouteAdapter
 import com.albertkingdom.mybusmap.databinding.FavFragmentBinding
 import com.albertkingdom.mybusmap.model.Favorite
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 
 @AndroidEntryPoint
 class FavFragment: Fragment(R.layout.fav_fragment) {
-    private lateinit var listView: ListView
+    private lateinit var recyclerView: RecyclerView
     private lateinit var binding: FavFragmentBinding
     lateinit var adapter: FavRouteAdapter
     private val viewModel: FavFragmentViewModel by viewModels()
@@ -30,8 +33,10 @@ class FavFragment: Fragment(R.layout.fav_fragment) {
         super.onViewCreated(view, savedInstanceState)
 
         binding = FavFragmentBinding.bind(view)
-        listView = binding.listView
-
+        recyclerView = binding.recyclerView
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        adapter = FavRouteAdapter(onClick, onDeleteFav)
+        recyclerView.adapter = adapter
         viewModel.isLogin.observe(viewLifecycleOwner) { isLogin ->
             if (isLogin) {
                 viewModel.getFromRemote()
@@ -40,34 +45,43 @@ class FavFragment: Fragment(R.layout.fav_fragment) {
             }
         }
         viewModel.listOfFavorite.observe(viewLifecycleOwner) { list ->
+            Timber.d(list.toString())
             if (list.isNotEmpty()) {
                 binding.emptyListPlaceholder.visibility = View.GONE
             } else {
                 binding.emptyListPlaceholder.visibility = View.VISIBLE
             }
-            adapter = FavRouteAdapter(requireContext(), R.layout.item_fav_list, list)
-            listView.adapter = adapter
-            adapter.deleteFav = onDeleteFav
+            adapter.submitList(list)
+//            adapter.deleteFav = onDeleteFav
         }
 
-        setupListView()
+//        setupListView()
     }
-
-    private fun setupListView() {
-        listView.setOnItemClickListener { adapterView, view, position, _ ->
-            val routeName = (adapterView.getItemAtPosition(position) as Favorite).name
-            val intent = Intent(requireActivity(), RouteOfStopActivity::class.java)
-            intent.putExtra("click route name", routeName)
-            startActivity(intent)
-        }
+    private val onClick = { favorite: Favorite ->
+        println(favorite)
+        val routeName = favorite.name
+        val intent = Intent(requireActivity(), RouteOfStopActivity::class.java)
+        intent.putExtra("click route name", routeName)
+        startActivity(intent)
     }
+//    private fun setupListView() {
+//        recyclerView.setOnItemClickListener { adapterView, view, position, _ ->
+//            val routeName = (adapterView.getItemAtPosition(position) as Favorite).name
+//            val intent = Intent(requireActivity(), RouteOfStopActivity::class.java)
+//            intent.putExtra("click route name", routeName)
+//            startActivity(intent)
+//        }
+//    }
 
-    private val onDeleteFav = { routeName: String ->
-        showDeleteConfirmationDialog(routeName) {
-            when (viewModel.isLogin.value) {
-                true -> viewModel.removeFromRemote(routeName)
-                false -> viewModel.removeFromDB(routeName)
-                else -> {} // Handle nullcase if necessary
+    private val onDeleteFav = { favorite: Favorite ->
+        val routeName = favorite.name
+        if (routeName != null) {
+            showDeleteConfirmationDialog(routeName) {
+                when (viewModel.isLogin.value) {
+                    true -> viewModel.removeFromRemote(routeName)
+                    false -> viewModel.removeFromDB(routeName)
+                    else -> {} // Handle nullcase if necessary
+                }
             }
         }
     }

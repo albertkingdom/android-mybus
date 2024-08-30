@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitManager {
     //val BASE_URL = "https://tdx.transportdata.tw/api/basic/v2/Bus/StopOfRoute/City/"
-    val BASE_URL = "https://ptx.transportdata.tw/MOTC/v2/Bus/StopOfRoute/City/"
+    val BASE_URL =   "https://ptx.transportdata.tw/MOTC/v2/Bus/StopOfRoute/City/"
     val loggingInterceptor = HttpLoggingInterceptor { message ->
         Log.d("RetrofitManager",message)
     }.apply {

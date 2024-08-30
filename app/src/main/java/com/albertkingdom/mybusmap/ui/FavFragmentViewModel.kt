@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.albertkingdom.mybusmap.model.Favorite
 import com.albertkingdom.mybusmap.model.db.FavoriteRealm
 import com.albertkingdom.mybusmap.repository.FavoriteRepository
+import com.google.firebase.firestore.DocumentChange
+import com.google.firebase.firestore.ListenerRegistration
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.realm.RealmResults
 import kotlinx.coroutines.launch
@@ -22,6 +24,8 @@ class FavFragmentViewModel @Inject constructor(
         get() = _listOfFavorite
     var isLogin = MutableLiveData<Boolean>(false)
     private lateinit var favoriteRealms: RealmResults<FavoriteRealm> // store realm db query results
+    private var firestoreListener: ListenerRegistration? = null // 儲存 Firestore Listener
+
     init {
         checkIfSignIn()
     }
@@ -44,6 +48,7 @@ class FavFragmentViewModel @Inject constructor(
     fun removeFromRemote(routeName: String) {
         viewModelScope.launch {
             favoriteRepository.deleteFavFromRemote(routeName)
+            getFromRemote()
         }
     }
 
@@ -84,12 +89,43 @@ class FavFragmentViewModel @Inject constructor(
 //        favoriteRealms.addChangeListener(DBchangeListener)
 //
 //    }
+
+//    private fun listenForFirestoreChanges() {
+//        firestoreListener = favoriteRepository.getRef().addSnapshotListener { snapshot, e ->
+//            if (e != null) {
+//                Timber.e(e, "Listen failed.")
+//                return@addSnapshotListener
+//            }
+//            if (snapshot != null && snapshot.exists()){
+//                for (dc in snapshot.data) {
+//
+//                }
+//            }
+//            snapshot?.data?.forEach { dc ->
+//                when (dc.`) {
+//                    DocumentChange.Type.ADDED -> {
+//                        val addedFavorite= dc.document.toObject(Favorite::class.java)
+//                        _listOfFavorite.value = (_listOfFavorite.value ?: emptyList()) + addedFavorite
+//                    }
+//                    DocumentChange.Type.REMOVED -> {
+//                        val removedFavorite = dc.document.toObject(Favorite::class.java)
+//                        _listOfFavorite.value = (_listOfFavorite.value ?: emptyList()).filter { it != removedFavorite }
+//                    }
+//                    // No need to handle MODIFIED in this case, as it's not used
+//                    else -> {}
+//                }
+//            }
+//        }
+//    }
+
     private fun checkIfSignIn() {
         favoriteRepository.checkIsLogin().let {
             isLogin.value = it
         }
 
         if (isLogin.value != true) {
+//            listenForFirestoreChanges() // 如果已登入，開始監聽 Firestore 變動
+
 //            getDBLiveChange()
         }
     }
@@ -99,5 +135,6 @@ class FavFragmentViewModel @Inject constructor(
         if (::favoriteRealms.isInitialized) {
             favoriteRealms.removeAllChangeListeners()
         }
+        firestoreListener?.remove() // 移除 Firestore Listener
     }
 }
